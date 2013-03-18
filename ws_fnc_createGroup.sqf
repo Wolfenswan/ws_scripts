@@ -26,7 +26,7 @@
 // 
 // 4.Size of group (integer)
 //
-// 5.Times the group will respawn after they are died (integer), 0 to disable
+// 5.Times the group will respawn after death (integer), 0 to disable
 //
 //
 // Modifyable variables in script
