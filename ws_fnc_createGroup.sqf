@@ -22,7 +22,7 @@
 // "attack" - group moves to moveLocation and engages targets on sight. MoveLocation is placed in radius of second parameter
 // "guard" - group moves to moveLocation and guards the area, manning static vehicles. MoveLocation is placed in radius of second parameter
 // "patrol" - group moves to moveLocation and starts randomized patrol. Second parameter dictates maximum distance bewteen random patrol waypoints
-// "script" - group moves to moveLocation where a script is executed. Second parameter is the code that will be executed: ["script","player sidechat 'hi'"];
+// "script" - group moves to moveLocation where a script is executed. Second parameter is the code that will be executed: ["script","player sidechat 'hi'; call myfunction"];
 // 
 // 4.Size of group (integer)
 //
