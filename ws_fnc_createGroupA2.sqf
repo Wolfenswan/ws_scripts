@@ -1,5 +1,5 @@
 // Group and wave spawn function
-// By Wolfenswan: wolfenswanarps@gmail.com 
+// By Wolfenswan [FA]: wolfenswanarps@gmail.com | folkarps.com
 //
 // Feature: 
 // Spawns a group of units that can either patrol, attack or guard an area
