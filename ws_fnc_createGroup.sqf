@@ -84,7 +84,7 @@ ws_fnc_createGroup = {
    //We could use BIS_fnc_selectRandom, but that would require the Funtion Module to be present in the mission
    
    _ws_fnc_selectrandom = {
-   _selection = (_this select 0) select (floor round random (count (_this select 0)-1));
+   _selection = _this select (floor (random (count _this)));
    _selection
    };
    
