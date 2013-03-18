@@ -92,7 +92,6 @@ ws_fnc_createGroup = {
    
    for "_x" from 1 to (_size) do {
       if (_x <= (count _forcedclasses)) then {
-      player sidechat format ["%1",_x];
       _unit = _grp createUnit [_forcedclasses select (_x - 1),_spawnpos,[],5,"NONE"];
       } else {
          if ((floor round random 100) < _rarechance) then {
