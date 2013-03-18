@@ -8,7 +8,7 @@
 // 1. Paste Code in init.sqf or a seperate.sqf that's executed from the init.sqf
 // 2. Call the function during your mission with 
 // nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],[mode("attack","guard","patrol"),modifier],size of group, number of respawns] call ws_fnc_createGroup;
-// 3. The Function Module must be placed in the editor
+// 3. The Function Module must be placed in the editor (ARMA 2 only)
 //
 // Parameters:
 // 1.The side of the group: east, west, resistence, civilian
@@ -114,6 +114,8 @@ ws_fnc_createGroup = {
    
    
    //WAYPOINT CREATION
+   
+   //wait until the function module is initialized (should be by now but better safe then sorry)
    waituntil {!(isnil "bis_fnc_init")};
       
    switch (_mode) do {   

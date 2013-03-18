@@ -114,6 +114,9 @@ ws_fnc_createGroup = {
    
    
    //WAYPOINT CREATION
+   
+   //wait until the function module is initialized (should be by now but better safe then sorry)
+   waituntil {!(isnil "bis_fnc_init")};
       
    switch (_mode) do {   
       case "attack": {
