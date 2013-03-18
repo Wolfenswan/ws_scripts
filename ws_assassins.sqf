@@ -85,12 +85,16 @@ player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:
 
 //LOCAL VARIABLES - helpers
 //declaring variables we need later
+if (isNil "ws_assassins_firstrun") then {ws_assassins_firstrun = true;};
+_unitloc = [];
 _listclose = [];
 _listclosealive = [];
 _weaponmag = "";
 _target = "";
+_target_side = civilian;
 _target_type = false;
 _done = false;
+_grp = grpNull;
 
 //INITIAL CHECKS
 //If _check is set to 1 the script will launch itself again with the given variables.
@@ -124,40 +128,36 @@ _weapon = _weaponarr select _ran;
 };
 _weaponmag = (getArray (configFile >> "CfgWeapons" >> _weapon >> "magazines")) select 0;
 
+if (ws_assassins_firstrun) then {
+_HQWest = createCenter west;
+_HQEast = createCenter east;
+_HQResistance = createCenter east;
+ws_assassins_firstrun = false;};
+
 //GROUP CREATION
-//Checking wether a side or an objectname was parsed.
-
-
+//Checking wether a side or an objectname was parsed
 
 switch (typename _target1) do {
 	case "SIDE": {
-	_target_type = true;
-		switch (_target1) do {
-			case west: {_center = createCenter east; _grp = createGroup east;};
-			case east: {_center = createCenter west; _grp = createGroup west;};
-			case resistance: {if ((west getFriend resistance)<0.6)then{_center = createCenter east;_grp = createGroup east;_target="soldierGB"}else{_center = createCenter west;_grp = createGroup west;_target="soldierGB"};};
-			case civilian: {if ((west getFriend civilian)<0.6)then{_center = createCenter east;_grp = createGroup east;_target="soldierGB"}else{_center = createCenter west;_grp = createGroup west;_target="soldierGB"};};
-			default {"ws_assassins DBG: ERROR:  _target1 recognized as SIDE but not a valid one"};
-		};
-	};
-	
+	_target_side = _target1;
+	};	
 	case "OBJECT": {
-	_string = format ["%1",typename _target1];
-	player sidechat _string;
-	_target_type = false;
-		switch (side _target1) do {
-			case west: {_grp = createGroup east;};
-			case east: {_grp = createGroup west;};
-			case resistance: {if ((west getFriend resistance)<0.6)then{_grp = createGroup east;}else{_grp = createGroup west;};};
-		};
+	_target_side = side _target1;
 	};
-	
-	default {player globalchat "ws_assassins DBG: ERROR:  wrong type of target (must be side or name of unit).";};
+	default {player globalchat "ws_assassins DBG: ERROR:  wrong type of _target1 (must be side or name of unit).";};
+};	
+
+switch (_target_side) do {
+	case west: {_grp = createGroup east;};
+	case east: {_grp = createGroup west;};
+	case resistance: {if ((west getFriend resistance)>0.5)then{_grp = createGroup east;}else{_grp = createGroup west;}; };
+	//case civilian: {if ((west getFriend civilian)>0.5)then{_grp = createGroup east;}else{_grp = createGroup west;};};
+	default {"ws_assassins DBG: ERROR: _target1 side but not valid (should not be civilian)"};
 };
 
 //DEBUG
 if (_debug) then {
-player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:%3,_targettype:%4,_weapon:%5,_weaponmag:%6",_unit,_target1,_target2,_target_type,_weapon,_weaponmag,_chance,_trgsize];
+player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:%3,_targettype:%4,_weapon:%5,_weaponmag:%6,_target_side:%7",_unit,_target1,_target2,_target_type,_weapon,_weaponmag,_target_side];
 
 	_string = format ["civ_%1",_unit];
 	player sidechat _string;
@@ -183,55 +183,40 @@ while {alive _unit} do {
 	while {!(_done)} do {
 		_unitloc = getPos _unit;
 		_listclose = (nearestObjects [_unitloc,["CAManBase"],_trgsize]) - [_unit];
+		{if (((side _x == _target_side) && alive _x)) then {_listclosealive set [(count _listclosealive),_x];};} foreach _listclose;
 
 			//DEBUG
 			if (_debug) then {
 			_string = format ["ws_assassins.sqf DEBUG: Outer Loop. _listclos: %1",_listclose];
 			player globalchat _string;
 			};
-		
-		if (_target_type) then {
-			{if (((side _x == _target1) && alive _x)) then {_listclosealive set [(count _listclosealive),_x];};} foreach _listclose;
-			if ((count _listclosealive) >= _target2) then {
-			
-					//DEBUG
-					if (_debug) then {
-					_string = format ["ws_assassins.sqf DEBUG: Civ targeting _listclosealive: %1, sleeping %2",_listclosealive,_sleep];
-					player globalchat _string;
-					};
-					
-				sleep _sleep;
-				[_unit] join _grp;
-				{_unit addMagazine _weaponmag;} forEach [1,2];
-				_unit addWeapon _weapon;
-				sleep 2+(random 4);							//2 - 4 second delay before the assassin starts engaging
-				_unit doTarget (_listclosealive select 0);
-				_done = true;
-			};
-		} else {
-			if (_target1 in _listclose) then {
+	
+		if (((count _listclosealive) >= _target2)||(_target1 in _listclosealive)) then {
 			
 				//DEBUG
 				if (_debug) then {
-					_string = format ["ws_assassins.sqf DEBUG: Civ targeting _target1: %1, sleeping %2",_listclosealive,_sleep];
-					player globalchat _string;
+				_string = format ["ws_assassins.sqf DEBUG: Civ targeting _target:%1 in _listclosealive: %2, sleeping %3",_target1, _listclosealive,_sleep];
+				player globalchat _string;
 				};
 				
 			sleep _sleep;
 			[_unit] join _grp;
 			{_unit addMagazine _weaponmag;} forEach [1,2];
-				_unit addWeapon _weapon;
-			_unit disableAI "autotarget";
-			sleep 2+(random 2);							//2 - 4 second delay before the assassin starts engaging
-			_unit doTarget _target1;
-			waitUntil {!alive _target1 || !alive _unit};
-			if (alive _unit) then {_unit enableAI "autotarget";};
+			_unit addWeapon _weapon;
+			sleep 1+(random 2);							//1 - 3 second delay before the assassin starts engaging
+				
+				if (typename _target1 == "OBJECT") then {
+				_unit doTarget _target1;
+				waitUntil {!alive _target1 || !alive _unit};
+				if (alive _unit) then {_unit enableAI "autotarget";};
+				} else {
+				_unit doTarget (_listclosealive select (floor(random(count _listclosealive ))));
+				};	
 			_done = true;
-			};
 		};
 	sleep _perfomancesleep;	
 	};
-sleep (_perfomancesleep*3);		
+sleep (_perfomancesleep*3);	
 };
-
-deletegroup _grp;
+	
+deletegroup _grp;	
