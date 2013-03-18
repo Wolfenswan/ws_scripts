@@ -7,20 +7,27 @@
 // Usage:
 // 1. Paste Code in init.sqf or a seperate.sqf that's executed from the init.sqf
 // 2. Call the function during your mission with 
-// nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],mode("attack","guard","patrol"),size of group, number of respawns] call ws_fnc_createGroup;
+// nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],[mode("attack","guard","patrol"),modifier],size of group, number of respawns] call ws_fnc_createGroup;
 // 3. The Function Module must be placed in the editor
 //
 // Parameters:
 // 1.The side of the group: east, west, resistence, civilian
+//
 // 2.Array consisting of:
 //     spawnlocation: can either be a marker, an object or a valid pos array [x,y,z]
 //   movelocation: can either be a marker, an object, a valid pos array [x,y,z]
-// 3.Mode (string):
-// "attack" - group moves to moveLocation and engages targets on sight
-// "patrol" - group moves to moveLocation and starts randomized patrol
-// "guard" - group moves to moveLocation and guards the area, manning static vehicles
+//
+// 3.Mode (array):
+// First parameter (string), second parameter (number or string):
+// "attack" - group moves to moveLocation and engages targets on sight. MoveLocation is placed in radius of second parameter
+// "guard" - group moves to moveLocation and guards the area, manning static vehicles. MoveLocation is placed in radius of second parameter
+// "patrol" - group moves to moveLocation and starts randomized patrol. Second parameter dictates maximum distance bewteen random patrol waypoints
+// "script" - group moves to moveLocation where a script is executed. Second parameter is the code that will be executed: ["script","player sidechat 'hi'"];
+// 
 // 4.Size of group (integer)
+//
 // 5.Times the group will respawn after they are died (integer), 0 to disable
+//
 //
 // Modifyable variables in script
 // - classes  the unit is composed of
@@ -28,25 +35,24 @@
 // - chance of stronger units
 // - area the unit patrols
 //
+//
 // ToDo:
 // - include vehicle option
 // - more flexibility ?
 
-
 ws_fnc_createGroup = {
 
-   private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_mode","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
+   private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_mode","_modifier","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
 
    //LOCAL VARIABLES - modifyable
    //Edit these variables to your leisure
    
    _mode = ["AWARE","YELLOW"];                                              //Default behaviour and Combatmode
-   _forcedclasses = ["GUE_Soldier_CO","GUE_Soldier_1","GUE_Soldier_AR"];               //each class in _forcedclasses will be in the group (only) once
+   _forcedclasses = ["GUE_Soldier_CO","GUE_Soldier_1","GUE_Soldier_AR"];              		 //each class in _forcedclasses will be in the group (only) once
    _commonclasses = ["GUE_Soldier_1","GUE_Soldier_2","GUE_Woodlander1","GUE_Worker1"];    //regular classes included in the group
    _rareclasses = ["GUE_Soldier_AT","GUE_Soldier_MG"];                              //special classes (of _rarechance chance to be in group)
    _rarechance = 25;
-   _patrolarea = 250;                                                      //Maximum distance between waypoints for patrolmode
-   
+ 
    _debug = true;                                                         //Debug mode, activate in case of wonky behaviour
 
    //LOCAL VARIABLES - scriptside
@@ -54,7 +60,8 @@ ws_fnc_createGroup = {
    _side = (_this select 0);
    _spawnpos = ((_this select 1) select 0);
    _movepos = ((_this select 1) select 1);
-   _mode = _this select 2;
+   _mode = toLower ((_this select 2) select 0);
+   _modifier = (_this select 2) select 1;
    _size = _this select 3;
    _respawns = _this select 4;
    
@@ -107,28 +114,40 @@ ws_fnc_createGroup = {
    
    
    //WAYPOINT CREATION
-   
-   _wp = _grp addWaypoint [_movepos,50];
-   _wp setWaypointSpeed "NORMAL";
-   
+      
    switch (_mode) do {   
       case "attack": {
-         _grp setBehaviour "AWARE";
-         _grp setCombatMode "RED";
-         _wp setWaypointType "SAD";
-         _grp setCurrentWaypoint _wp;
+        _grp setBehaviour "AWARE";
+        _grp setCombatMode "RED";
+		_wp = _grp addWaypoint [_movepos,_modifier];
+		_wp setWaypointSpeed "NORMAL";
+		_wp setWaypointType "SAD";
+        _grp setCurrentWaypoint _wp;
       };
 
       case "guard": {
-         _wp setWaypointStatements ["true", "[group this,getPos this] call BIS_fnc_taskDefend;"];
-         _grp setCurrentWaypoint _wp;
+		_wp = _grp addWaypoint [_movepos,_modifier];
+        _wp setWaypointStatements ["true", "[group this,getPos this] call BIS_fnc_taskDefend;"];
+        _grp setCurrentWaypoint _wp;
       };
 
       case "patrol": {
-         _wp setWaypointType "HOLD";
-         _wp setWaypointStatements ["true", "[group this,getPos this,_patrolarea] call BIS_fnc_taskPatrol;"];
-         _grp setCurrentWaypoint _wp;
+		_wp = _grp addWaypoint [_movepos,5];
+        _wp setWaypointType "HOLD";
+        _wp setWaypointStatements ["true", "[group this,getPos this,_modifier] call BIS_fnc_taskPatrol;"];
+        _grp setCurrentWaypoint _wp;
       };
+	  
+	  case "script": {
+		_wp = _grp addWaypoint [_movepos,5];
+        _wp setWaypointType "MOVE";
+        _wp setWaypointStatements ["true",_modifier];
+        _grp setCurrentWaypoint _wp;
+				
+		if (typename _modifier != "STRING") then {player globalchat "ws_fnc_createGroup DEBUG: Error. _mode is 'script' but _modifier is not of type 'STRING'"};
+      };
+	  
+	  default {player globalchat "ws_fnc_createGroup DEBUG: Error. _mode must be 'attack','guard','patrol' or 'script'"};
    };
 
    //DEBUG
@@ -161,7 +180,7 @@ ws_fnc_createGroup = {
    //and don't need to check every frame, which a while loop without sleep does
    
    if (_respawns > 0) then {
-      [_grp,[_side,[_spawnpos,_movepos],_mode,_size,(_respawns - 1)]] spawn {
+      [_grp,[_side,[_spawnpos,_movepos],[_mode,_modifier],_size,(_respawns - 1)]] spawn {
       _grp = _this select 0;
       _args = _this select 1;
       
