@@ -46,10 +46,6 @@
 //   5. is not ignored in (true) but should be a side
 //	 6. and 7. are read in (true) as in the regular script
 //   In (true) The Weapons are randonmly taken from an array. Modify this array in the ws_assassins.sqf.
-//
-//
-// TODO
-// Better group generation
 
 if !(isServer) exitWith {};
 
