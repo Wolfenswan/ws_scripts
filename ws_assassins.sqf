@@ -35,7 +35,7 @@
 //   If set to a unitname, it will wait until the specified unit is in the area.
 //	
 // 6. How many units of the selected target side have to be in the area before the civilian					| (any number over 0)
-//   triggers. Ignored when 6. is set to unitname
+//   triggers. If 5. is set to a unitname this should be 1.
 //
 // 7. The skill level of the civilian. Can be anything from 0 to 1, including decimals.						| (any number 0 to 1)
 //   See http://community.bistudio.com/wiki/setSkill
@@ -54,15 +54,16 @@ private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran
 "_grp","_target","_target_type","_perfomancesleep"];
 
 
-//LOCAL VARIABLES - modifyable
+//LOCAL VARIABLES - MODIFYABLE
 _weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"]; //Modify this array for the randomized weapon selection.
-//Arma3: _weaponarr = ["hgun_Rook40_F","hgun_P07_F"];
-_flee = 1; //if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
-_sleep = round random 8; //How long they sleep between being trigger and pulling a gun
-_perfomancesleep = 1; //How often the loop is perfomanced. Only increase this in mission with tons of civilians.
+//ARMA 3: _weaponarr = ["hgun_Rook40_F","hgun_P07_F"];
+_flee = 1; 					//can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
+_sleep = round random 8; 	//How long they sleep between being triggered and pulling a gun
+_perfomancesleep = 1; 		//How often the loop is performed. Only increase this in mission with tons of civilians.
 
-_debug = true;
+_debug = true;				//Debug messages and markers. Search and replace for "DOT" with "mil_dot" in script before using in ARMA3 !
 
+//NO NEED TO MODIFY CODE BELOW HERE!
 
 //LOCAL VARIABLES - scriptside
 //parsed variables
@@ -82,6 +83,7 @@ player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:
 //LOCAL VARIABLES - helpers
 //declaring variables we need later
 if (isNil "ws_assassins_firstrun") then {ws_assassins_firstrun = true;};
+if (isNil "ws_assassins_array") then {ws_assassins_array = [];};
 _unitloc = [];
 _listclose = [];
 _listclosealive = [];
@@ -92,23 +94,27 @@ _target_type = false;
 _done = false;
 _grp = grpNull;
 
+
 //INITIAL CHECKS
-//If _check is set to 1 the script will launch itself again with the given variables.
-if (_check) exitWith {
+//If the civ fails the chance check there's no need to run anything else;
+//Also, women can't be assassins, ARMA is sexist that way. No assassinesses (assassinas? assassinetten?) for us,
+//Some AI features are disabled for the civ to save processing power
+if !(_check) exitWith {
+	if (((round(random 100))> _chance)||(_unit isKindOf "Woman")) exitWith{
+	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} count ["AUTOTARGET","TARGET"];
+	};
+};
+
+ws_assassins_array = ws_assassins_array + [_unit];
+
+//If _check is set to (true) the script will launch itself again with the given variables.
+//It will run on all civilians that haven't yet been turned into sleepers (those in the ws_assassins_array)
+if (_check) then {
 	_civarray = [];
 	{if ((side _x) == civilian) then {_civarray = _civarray + [_x]}} forEach allUnits;
+	_civarray = _civarray - ws_assassins_array;
 	{[_x,"ran",_chance,_trgsize,_target1,_target2,_skill,false] execVM "ws_assassins.sqf";} forEach _civarray;
 };
-
-//If the civ fails the chance check there's no need to run anything else;
-//Some AI features are disabled for the civ to save processing power
-if ((round(random 100))> _chance)exitWith{
-_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} count ["AUTOTARGET","TARGET"];
-};
-
-//Unfortunately ArmA is sexist and women can't be assassins
-//We delete the would-be assassiness (assassina? assassinette?) and have ALICE create a new one
-if (_unit isKindOf "Woman") exitWith {deleteVehicle _unit};
 
 
 //Set up sleeper
@@ -117,13 +123,15 @@ _unit setSkill _skill;
 [_unit] joinsilent grpNull;
 {_unit enableAI _x} count ["AUTOTARGET","TARGET"];
 
-//Weapon selection, Random if empty ("")
+//Weapon selection, Random if set to "ran"
 if (_weapon == "ran") then {
 _ran = (floor(random(count _weaponarr)));
 _weapon = _weaponarr select _ran;
 };
 _weaponmag = (getArray (configFile >> "CfgWeapons" >> _weapon >> "magazines")) select 0;
 
+//On the first run we create centers for each possible group, just to be safe
+//(see http://community.bistudio.com/wiki/createCenter)
 if (ws_assassins_firstrun) then {
 _HQWest = createCenter west;
 _HQEast = createCenter east;
@@ -143,12 +151,13 @@ switch (typename _target1) do {
 	default {player globalchat "ws_assassins DBG: ERROR:  wrong type of _target1 (must be side or name of unit).";};
 };	
 
+//creating a group hostile to the target.
 switch (_target_side) do {
 	case west: {_grp = createGroup east;};
 	case east: {_grp = createGroup west;};
 	case resistance: {if ((west getFriend resistance)>0.5)then{_grp = createGroup east;}else{_grp = createGroup west;}; };
-	//case civilian: {if ((west getFriend civilian)>0.5)then{_grp = createGroup east;}else{_grp = createGroup west;};};
-	default {"ws_assassins DBG: ERROR: _target1 side but not valid (should not be civilian)"};
+	case civilian: {if ((west getFriend civilian)>0.5)then{_grp = createGroup east;}else{_grp = createGroup west;};};
+	default {"ws_assassins DBG: ERROR: _target1 is side but not a valid one"};
 };
 
 //DEBUG
@@ -175,8 +184,13 @@ waitUntil {time > 5};
 
 //LOOPING
 //The magical (and ugly) double loop where it all happens
+//Outer loop just waits for the unit to die
+//Inner loop waits for the unit to aquire and engage a target (_done = true) 
 while {alive _unit} do {
-	while {!(_done)} do {
+	while {!(_done) && (alive _unit)} do {
+	
+		//Every _perfomancesleep we update the position of the sleeper (_unitloc)
+		//to create an array of all nearby infantry units (_listclose) and all alive infantry units of the target side (_listclosealive)
 		_unitloc = getPos _unit;
 		_listclose = (nearestObjects [_unitloc,["CAManBase"],_trgsize]) - [_unit];
 		{if (((side _x == _target_side) && alive _x)) then {_listclosealive set [(count _listclosealive),_x];};} foreach _listclose;
@@ -187,7 +201,8 @@ while {alive _unit} do {
 			player globalchat _string;
 			};
 	
-		if (((count _listclosealive) >= _target2)||(_target1 in _listclosealive)) then {
+		//Yuck. This abomination checks a) if there are enough targets in _listclosealive and b) wether _target1 is close (if _target1 is a side it just checks out)
+		if (((count _listclosealive) >= _target2) && ((_target1 in _listclosealive)||(typename _target1 == "SIDE"))) then {
 			
 				//DEBUG
 				if (_debug) then {
@@ -215,4 +230,5 @@ while {alive _unit} do {
 sleep (_perfomancesleep*3);	
 };
 	
+//Clean up. After the sleeper has been killed we delete his group
 deletegroup _grp;	

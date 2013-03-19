@@ -8,9 +8,13 @@
 // 1. Paste Code in init.sqf or a seperate.sqf that's executed from the init.sqf
 // 2. Call the function during your mission with 
 // nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],[mode("attack","guard","patrol"),modifier],size of group, number of respawns] call ws_fnc_createGroup;
-// 3. The Function Module must be placed in the editor (ARMA 2 only)
+// ARMA2 only: The Function Module must be placed in the editor
 //
-// Parameters:
+// ARMA 3:
+// Replace classes in class arrays below with valid ARMA 3 unit classes
+// If intending to use debug mode, search and replace for "dot" with "mil_dot", otherwise debug markers will be broken.
+//
+// PARAMETERS:
 // 1.The side of the group: east, west, resistence, civilian
 //
 // 2.Array consisting of:
@@ -42,21 +46,29 @@
 
 ws_fnc_createGroup = {
 
-   private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_mode","_modifier","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
+   private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_dir","_mode","_modifier","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
 
    //LOCAL VARIABLES - modifyable
    //Edit these variables to your leisure
    
-   _mode = ["AWARE","YELLOW"];                                              //Default behaviour and Combatmode
-   _forcedclasses = ["B_Soldier_TL_F","B_medic_F","B_soldier_AR_F"];              	 //each class in _forcedclasses will be in the group (only) once
-   _commonclasses = ["B_Soldier_03_f","B_Soldier_02_f"];    						//regular classes included in the group
+   _mode = ["AWARE","YELLOW"];                                             				 //Default behaviour and Combatmode
+   _forcedclasses = ["GUE_Soldier_CO","GUE_Soldier_1","GUE_Soldier_AR"];              	 //each class in _forcedclasses will be in the group exactly once
+   _commonclasses = ["GUE_Soldier_1","GUE_Soldier_2","GUE_Woodlander1","GUE_Worker1"];   //regular classes included in the group
+   _rareclasses = ["GUE_Soldier_AT","GUE_Soldier_MG"];                             		 //special classes (of _rarechance chance to be in group)
+   
+   //ARMA 3 Example (BLUFOR classes):
+   /*
+   _forcedclasses = ["B_Soldier_TL_F","B_medic_F","B_soldier_AR_F"];              	 //each class in _forcedclasses will be in the group exactly once
+   _commonclasses = ["B_Soldier_03_f","B_Soldier_02_f"];    						 //regular classes included in the group
    _rareclasses = ["B_Soldier_GL_F","B_Soldier_LAT_F"];                              //special classes (of _rarechance chance to be in group)
+   */
+   
    _rarechance = 25;
  
-   _debug = true;                                                         //Debug mode, activate in case of wonky behaviour
+   _debug = true;                                                         //Debug mode for progress messages and group markers.search and replace for "dot" with "mil_dot" before using with ARMA3!
 
    //LOCAL VARIABLES - scriptside
-   
+   //variables taken from the array
    _side = (_this select 0);
    _spawnpos = ((_this select 1) select 0);
    _movepos = ((_this select 1) select 1);
@@ -65,6 +77,7 @@ ws_fnc_createGroup = {
    _size = _this select 3;
    _respawns = _this select 4;
    
+   //Getting a good position from the parsed values
    switch (typename _spawnpos) do {
       case "STRING": {_spawnpos = getMarkerPos _spawnpos;};
       case "OBJECT": {_spawnpos = getPos _spawnpos;};
@@ -119,7 +132,7 @@ ws_fnc_createGroup = {
    
    //WAYPOINT CREATION
    
-   //wait until the function module is initialized (should be by now but better safe then sorry)
+   //wait until the function module is initialized (should be by now but better safe than sorry)
    waituntil {!(isnil "bis_fnc_init")};
       
    switch (_mode) do {   
@@ -132,13 +145,13 @@ ws_fnc_createGroup = {
         _grp setCurrentWaypoint _wp;
       };
 
-      case "guard": { 
+      case "guard": {
 		_wp = _grp addWaypoint [_movepos,_modifier];
         _wp setWaypointStatements ["true", "[group this,getPos this] call BIS_fnc_taskDefend;"];
         _grp setCurrentWaypoint _wp;
       };
 
-      case "patrol": { 
+      case "patrol": {
 		_wp = _grp addWaypoint [_movepos,5];
         _wp setWaypointType "HOLD";
         _wp setWaypointStatements ["true", "[group this,getPos this,_modifier] call BIS_fnc_taskPatrol;"];
@@ -164,12 +177,12 @@ ws_fnc_createGroup = {
    player globalchat format ["DEBUG: ws_spawn. Group created. _grp:%1 of size: %2 with %3 respawns",_grp,count units _grp,_respawns];
    
       _mkr = createMarker [format ["Group_%1",_grp], _spawnpos];
-      _mkr setMarkerType "mil_dot";
+      _mkr setMarkerType "Dot";
       _mkr setMarkerColor "ColorBlue";
       _mkr setMarkerText format ["DBG:group %1",_grp];
       
       _mkr = createMarker [format ["Group_%1-WP",_grp], _movepos];
-      _mkr setMarkerType "mil_dot";
+      _mkr setMarkerType "Dot";
       _mkr setMarkerColor "ColorBlue";
       _mkr setMarkerText format ["DBG:Group_%1-WP",_grp];
       
