@@ -97,6 +97,8 @@ _target_type = false;
 _done = false;
 _grp = grpNull;
 
+//No need to do anything else if the unit is already a sleeper
+if (_unit in ws_assassins_array) exitWith {};
 
 //INITIAL CHECKS
 //If the civ fails the chance check there's no need to run anything else;
@@ -117,6 +119,7 @@ if (_check) exitWith {
 	{[_x,"ran",_chance,_trgsize,_target1,_target2,_skill,false] execVM "ws_assassins.sqf";} forEach _civarray;
 };
 
+//If the unit passes all checks it is added to our global array of sleeper agents
 ws_assassins_array = ws_assassins_array + [_unit];
 
 //Set up sleeper
