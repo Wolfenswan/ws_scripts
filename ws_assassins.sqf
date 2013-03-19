@@ -99,7 +99,7 @@ _grp = grpNull;
 //If the civ fails the chance check there's no need to run anything else;
 //Also, women can't be assassins, ARMA is sexist that way. No assassinesses (assassinas? assassinetten?) for us,
 //Some AI features are disabled for the civ to save processing power
-if !(_check) exitWith {
+if !(_check) then {
 	if (((round(random 100))> _chance)||(_unit isKindOf "Woman")) exitWith{
 	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} count ["AUTOTARGET","TARGET"];
 	};
@@ -109,7 +109,7 @@ ws_assassins_array = ws_assassins_array + [_unit];
 
 //If _check is set to (true) the script will launch itself again with the given variables.
 //It will run on all civilians that haven't yet been turned into sleepers (those in the ws_assassins_array)
-if (_check) then {
+if (_check) exitWith {
 	_civarray = [];
 	{if ((side _x) == civilian) then {_civarray = _civarray + [_x]}} forEach allUnits;
 	_civarray = _civarray - ws_assassins_array;
