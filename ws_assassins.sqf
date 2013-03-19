@@ -1,4 +1,4 @@
-// Group and wave spawn function
+// Civilian assassins and sleeper agents
 // By Wolfenswan [FA]: wolfenswanarps@gmail.com | folkarps.com
 //
 //
