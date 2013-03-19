@@ -46,9 +46,6 @@
 //   5. is not ignored in (true) but should be a side
 //	 6. and 7. are read in (true) as in the regular script
 //   In (true) The Weapons are randonmly taken from an array. Modify this array in the ws_assassins.sqf.
-//
-// TODO
-// rewrite _check so it doesn't need to exec the script again (put loop in function, have _check (true) switch to forReach _civArray call of function)
 
 if !(isServer) exitWith {};
 
@@ -79,6 +76,7 @@ _target2 = _this select 5; //the number of valid targets that have to be in the 
 _skill = _this select 6;
 _check = _this select 7; //switch for affecting all civs or just one
 
+//DEBUG
 if (_debug) then {
 player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:%3,_weapon:%4,chance:%5, _trigsize:%6",_unit,_target1,_target2,_weapon,_chance,_trgsize];
 };
@@ -97,8 +95,10 @@ _target_type = false;
 _done = false;
 _grp = grpNull;
 
-//No need to do anything else if the unit is already a sleeper
-if (_unit in ws_assassins_array) exitWith {};
+//If the unit is already a sleeper there's no reason to execute the script again
+if (_unit in ws_assassins_array) exitWith {
+	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1, already in ws_assassins_array:%2, exiting",_unit,ws_assassins_array];};
+};
 
 //INITIAL CHECKS
 //If the civ fails the chance check there's no need to run anything else;
@@ -110,6 +110,13 @@ if !(_check) then {
 	};
 };
 
+//After passing the check the unit is added to the array of global sleepers
+//The reason behind this array is avoid having the script run on a unit more than once
+ws_assassins_array = ws_assassins_array + [_unit];
+
+//DEBUG
+if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: ws_assassins_array:%1",ws_assassins_array];};
+
 //If _check is set to (true) the script will launch itself again with the given variables.
 //It will run on all civilians that haven't yet been turned into sleepers (those in the ws_assassins_array)
 if (_check) exitWith {
@@ -117,10 +124,11 @@ if (_check) exitWith {
 	{if ((side _x) == civilian) then {_civarray = _civarray + [_x]}} forEach allUnits;
 	_civarray = _civarray - ws_assassins_array;
 	{[_x,"ran",_chance,_trgsize,_target1,_target2,_skill,false] execVM "ws_assassins.sqf";} forEach _civarray;
+	
+	//DEBUG
+	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _check is %1, script will be run on _civarray:%2, ws_assassins_array:%3",_check,_civarray,ws_assassins_array];};
 };
 
-//If the unit passes all checks it is added to our global array of sleeper agents
-ws_assassins_array = ws_assassins_array + [_unit];
 
 //Set up sleeper
 _unit allowfleeing _flee;
@@ -167,7 +175,7 @@ switch (_target_side) do {
 
 //DEBUG
 if (_debug) then {
-player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:%3,_targettype:%4,_weapon:%5,_weaponmag:%6,_target_side:%7",_unit,_target1,_target2,_target_type,_weapon,_weaponmag,_target_side];
+player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,_target2:%3,_targettype:%4,_weapon:%5,_weaponmag:%6,_target_side:%7",_unit,_target1,_target2,_target_type,_weapon,_weaponmag,_target_side];
 
 	_string = format ["civ_%1",_unit];
 	player sidechat _string;
