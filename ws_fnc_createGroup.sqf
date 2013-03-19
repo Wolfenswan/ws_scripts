@@ -7,7 +7,7 @@
 // Usage:
 // 1. Paste Code in init.sqf or a seperate.sqf that's executed from the init.sqf
 // 2. Call the function during your mission with 
-// nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],[mode("attack","guard","patrol"),modifier],size of group, number of respawns] call ws_fnc_createGroup;
+// nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],[mode("attack","guard","patrol"),modifier,code],size of group, number of respawns] call ws_fnc_createGroup;
 // ARMA2 only: The Function Module must be placed in the editor
 //
 // ARMA 3:
@@ -19,15 +19,17 @@
 //
 // 2.Array consisting of:
 //     spawnlocation: can either be a marker, an object or a valid pos array [x,y,z]
-//   movelocation: can either be a marker, an object, a valid pos array [x,y,z]
+//     movelocation: can either be a marker, an object, a valid pos array [x,y,z]
 //
 // 3.Mode (array):
-// First parameter (string), second parameter (number or string):
-// "attack" - group moves to moveLocation and engages targets on sight. MoveLocation is placed in radius of second parameter
-// "guard" - group moves to moveLocation and guards the area, manning static vehicles. MoveLocation is placed in radius of second parameter
-// "patrol" - group moves to moveLocation and starts randomized patrol. Second parameter dictates maximum distance bewteen random patrol waypoints
-// "script" - group moves to moveLocation where a script is executed. Second parameter is the code that will be executed: ["script","player sidechat 'hi'; call myfunction"];
-// 
+// First parameter (string), second parameter (number), optional: third parameter (string)
+// "move"	- group moves to moveLocation. 												MoveLocation is placed in radius of second parameter
+// "attack" - group moves to moveLocation and engages targets on sight. 				MoveLocation is placed in radius of second parameter
+// "guard" - group moves to moveLocation and guards the area, manning static vehicles. 	MoveLocation is placed in radius of second parameter
+// "patrol" - group moves to moveLocation and starts randomized patrol. 				Second parameter dictates maximum distance bewteen random patrol waypoints
+//
+// Third parameter is code that is executed on arrival
+//
 // 4.Size of group (integer)
 //
 // 5.Times the group will respawn after death (integer), 0 to disable
@@ -46,7 +48,7 @@
 
 ws_fnc_createGroup = {
 
-   private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_dir","_mode","_modifier","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
+    private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_dir","_mode","_modifier","_code","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
 
    //LOCAL VARIABLES - modifyable
    //Edit these variables to your leisure
@@ -74,6 +76,7 @@ ws_fnc_createGroup = {
    _movepos = ((_this select 1) select 1);
    _mode = toLower ((_this select 2) select 0);
    _modifier = (_this select 2) select 1;
+   if (count (_this select 2) > 2)then {_code = (_this select 2) select 2;} else {_code = "";};
    _size = _this select 3;
    _respawns = _this select 4;
    
@@ -135,6 +138,9 @@ ws_fnc_createGroup = {
    //wait until the function module is initialized (should be by now but better safe than sorry)
    waituntil {!(isnil "bis_fnc_init")};
       
+   //wait until the function module is initialized (should be by now but better safe then sorry)
+   waituntil {!(isnil "bis_fnc_init")};
+   
    switch (_mode) do {   
       case "attack": {
         _grp setBehaviour "AWARE";
@@ -142,32 +148,35 @@ ws_fnc_createGroup = {
 		_wp = _grp addWaypoint [_movepos,_modifier];
 		_wp setWaypointSpeed "NORMAL";
 		_wp setWaypointType "SAD";
+		_wp setWaypointStatements ["true", format["%1",_code]];
         _grp setCurrentWaypoint _wp;
       };
 
       case "guard": {
 		_wp = _grp addWaypoint [_movepos,_modifier];
-        _wp setWaypointStatements ["true", "[group this,getPos this] call BIS_fnc_taskDefend;"];
+		_wp setWaypointSpeed "NORMAL";
+		_wp setWaypointType "HOLD";
+        _wp setWaypointStatements ["true", format["[group this,getPos this] call BIS_fnc_taskDefend;%1",_code]];
         _grp setCurrentWaypoint _wp;
       };
 
       case "patrol": {
 		_wp = _grp addWaypoint [_movepos,5];
-        _wp setWaypointType "HOLD";
-        _wp setWaypointStatements ["true", "[group this,getPos this,_modifier] call BIS_fnc_taskPatrol;"];
-        _grp setCurrentWaypoint _wp;
-      };
-	  
-	  case "script": {
-		_wp = _grp addWaypoint [_movepos,5];
+		_wp setWaypointSpeed "NORMAL";
         _wp setWaypointType "MOVE";
-        _wp setWaypointStatements ["true",_modifier];
+        _wp setWaypointStatements ["true", format["[group this,getPos this,_modifier] call BIS_fnc_taskPatrol;%1",_code]];
         _grp setCurrentWaypoint _wp;
-				
-		if (typename _modifier != "STRING") then {player globalchat "ws_fnc_createGroup DEBUG: Error. _mode is 'script' but _modifier is not of type 'STRING'"};
       };
 	  
-	  default {player globalchat "ws_fnc_createGroup DEBUG: Error. _mode must be 'attack','guard','patrol' or 'script'"};
+	  case "move": {
+		_wp = _grp addWaypoint [_movepos,_modifier];
+		_wp setWaypointSpeed "NORMAL";
+		_wp setWaypointType "MOVE";
+		_wp setWaypointStatements ["true", format["%1",_code]];
+        _grp setCurrentWaypoint _wp;
+      };
+	  
+	  default {player globalchat "ws_fnc_createGroup DEBUG: Error. _mode must be 'move','attack','guard' or 'patrol'"};
    };
 
    //DEBUG
