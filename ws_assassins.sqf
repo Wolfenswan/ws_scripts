@@ -46,6 +46,9 @@
 //   5. is not ignored in (true) but should be a side
 //	 6. and 7. are read in (true) as in the regular script
 //   In (true) The Weapons are randonmly taken from an array. Modify this array in the ws_assassins.sqf.
+//
+// TODO
+// rewrite _check so it doesn't need to exec the script again (put loop in function, have _check (true) switch to forReach _civArray call of function)
 
 if !(isServer) exitWith {};
 
@@ -105,8 +108,6 @@ if !(_check) then {
 	};
 };
 
-ws_assassins_array = ws_assassins_array + [_unit];
-
 //If _check is set to (true) the script will launch itself again with the given variables.
 //It will run on all civilians that haven't yet been turned into sleepers (those in the ws_assassins_array)
 if (_check) exitWith {
@@ -116,6 +117,7 @@ if (_check) exitWith {
 	{[_x,"ran",_chance,_trgsize,_target1,_target2,_skill,false] execVM "ws_assassins.sqf";} forEach _civarray;
 };
 
+ws_assassins_array = ws_assassins_array + [_unit];
 
 //Set up sleeper
 _unit allowfleeing _flee;
