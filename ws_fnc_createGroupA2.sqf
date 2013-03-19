@@ -42,7 +42,7 @@
 
 ws_fnc_createGroup = {
 
-   private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_mode","_modifier","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
+   private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_dir","_mode","_modifier","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
 
    //LOCAL VARIABLES - modifyable
    //Edit these variables to your leisure
@@ -78,6 +78,9 @@ ws_fnc_createGroup = {
       case "ARRAY": {};
       default {player globalchat "ws_fnc_createGroup DEBUG: Error _movepos class is invalid!";};
    };
+   
+   //Getting the degree the _spawnpos is from the _movepos
+   _dir = ((_movepos select 0) - (_spawnpos select 0)) atan2 ((_movepos select 1) - (_spawnpos select 1));
       
    //RANDOM SELECTION FUNCTION
    //To make the code look a bit nicer, we use a simple function to randomly select an element from an array
@@ -107,6 +110,7 @@ ws_fnc_createGroup = {
          _unit = _grp createUnit [[_commonclasses] call _ws_fnc_selectrandom,_spawnpos,[],5,"NONE"];
          };
       };
+	  _unit setDir _dir;
    };
 
    _grp setBehaviour (_behaviour select 0);
