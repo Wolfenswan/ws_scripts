@@ -110,18 +110,11 @@ if !(_check) then {
 	};
 };
 
-//After passing the check the unit is added to the array of global sleepers
-//The reason behind this array is avoid having the script run on a unit more than once
-ws_assassins_array = ws_assassins_array + [_unit];
-
-//DEBUG
-if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: ws_assassins_array:%1",ws_assassins_array];};
-
 //If _check is set to (true) the script will launch itself again with the given variables.
 //It will run on all civilians that haven't yet been turned into sleepers (those in the ws_assassins_array)
 if (_check) exitWith {
 	_civarray = [];
-	{if ((side _x) == civilian) then {_civarray = _civarray + [_x]}} forEach allUnits;
+	{if (((side _x) == civilian) && !(isplayer _x)) then {_civarray = _civarray + [_x]}} forEach allUnits;
 	_civarray = _civarray - ws_assassins_array;
 	{[_x,"ran",_chance,_trgsize,_target1,_target2,_skill,false] execVM "ws_assassins.sqf";} forEach _civarray;
 	
@@ -129,6 +122,13 @@ if (_check) exitWith {
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _check is %1, script will be run on _civarray:%2, ws_assassins_array:%3",_check,_civarray,ws_assassins_array];};
 };
 
+
+//After passing the check the unit is added to the array of global sleepers
+//The reason behind this array is avoid having the script run on a unit more than once
+ws_assassins_array = ws_assassins_array + [_unit];
+
+//DEBUG
+if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: ws_assassins_array:%1",ws_assassins_array];};
 
 //Set up sleeper
 _unit allowfleeing _flee;
