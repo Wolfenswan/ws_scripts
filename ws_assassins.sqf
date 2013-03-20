@@ -50,9 +50,9 @@
 
 if !(isServer) exitWith {};
 
-private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran","_flee",
+private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran","_flee","_superclasses",
 "_unit","_units","_unitloc","_weaponarr","_weapon","_weaponmag","_target1","_target2","_trg","_trgsize","_debug","_chance",
-"_grp","_target","_target_type","_perfomancesleep"];
+"_grp","_target","_target_type","_victim","_perfomancesleep"];
 
 
 //LOCAL VARIABLES - MODIFYABLE
@@ -61,6 +61,9 @@ _weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"]; //Modify this arra
 _flee = 1; 					//can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
 _sleep = round random 8; 	//How long they sleep between being triggered and pulling a gun
 _perfomancesleep = 1; 		//How often the loop is performed. Only increase this in mission with tons of civilians.
+
+_superclasses = ["CAManBase","LandVehicle"];	//The Superclasses the civilians check for in their vicinity. Has to be an array! By default Infantry and land vehicles. H
+												//See http://browser.six-projects.net/cfg_vehicles/tree for all classes.
 
 _debug = true;				//Debug messages and markers. Search and replace for "DOT" with "mil_dot" in script before using in ARMA3 !
 
@@ -95,6 +98,7 @@ _target_side = civilian;
 _target_type = false;
 _done = false;
 _grp = grpNull;
+_victim = objNull;
 
 //If the unit is already a sleeper there's no reason to execute the script again
 if (_unit in ws_assassins_array) exitWith {
@@ -135,7 +139,7 @@ if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: ws_assassin
 _unit allowfleeing _flee;
 _unit setSkill _skill;
 [_unit] joinsilent grpNull;
-{_unit enableAI _x} count ["AUTOTARGET","TARGET"];
+_unit disableAI "AUTOTARGET";
 
 //Weapon selection, Random if set to "ran"
 if (_weapon == "ran") then {
@@ -206,7 +210,7 @@ while {alive _unit} do {
 		//Every _perfomancesleep we update the position of the sleeper (_unitloc)
 		//to create an array of all nearby infantry units (_listclose) and all alive infantry units of the target side (_listclosealive)
 		_unitloc = getPos _unit;
-		_listclose = (nearestObjects [_unitloc,["CAManBase"],_trgsize]) - [_unit];
+		_listclose = (nearestObjects [_unitloc,_superclasses,_trgsize]) - [_unit];
 		_listclosealive = [];
 		{if (((side _x == _target_side) && alive _x)) then {_listclosealive set [(count _listclosealive),_x];};} foreach _listclose;
 
@@ -227,23 +231,26 @@ while {alive _unit} do {
 				
 			sleep _sleep;
 			[_unit] join _grp;
-			{_unit addMagazine _weaponmag;} forEach [1,2];
+			{_unit addMagazine _weaponmag;} forEach [1,2,3,4];
 			_unit addWeapon _weapon;
 			sleep 1+(random 2);							//1 - 3 second delay before the assassin starts engaging
-				
+
 				if (typename _target1 == "OBJECT") then {
-				_unit doTarget _target1;
-				waitUntil {!alive _target1 || !alive _unit};
-				if (alive _unit) then {_unit enableAI "autotarget";};
+					_victim = _target1;
 				} else {
-				_unit doTarget (_listclosealive select (floor(random(count _listclosealive))));
+					_victim = (_listclosealive select (floor(random(count _listclosealive))));
 				};
-			
+				
+			_unit doTarget _victim;
+					
 				//DEBUG
 				if (_debug) then {
 				_string = format ["ws_assassins.sqf DEBUG: Civ engaging _target1:%1 or %2 in _listclosealive: %3, sleeping %3",_target1, (_listclosealive select (floor(random(count _listclosealive)))),_listclosealive];
 				player globalchat _string;
 				};	
+			
+			waitUntil {!alive _victim || !alive _unit};
+			if (alive _unit) then {_unit enableAI "autotarget";};
 			_done = true;
 		};
 	sleep _perfomancesleep;	
