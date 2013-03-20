@@ -62,8 +62,8 @@ _flee = 1; 					//can be any value between 0 and 1. if 1 the sleepers flee as lo
 _sleep = round random 8; 	//How long they sleep between being triggered and pulling a gun
 _perfomancesleep = 1; 		//How often the loop is performed. Only increase this in mission with tons of civilians.
 
-_superclasses = ["CAManBase","LandVehicle"];	//The Superclasses the civilians check for in their vicinity. Has to be an array! By default Infantry and land vehicles. H
-												//See http://browser.six-projects.net/cfg_vehicles/tree for all classes.
+_superclasses = ["CAManBase","Car"];	//The Superclasses the civilians check for in their vicinity. Has to be an array! By default Infantry and unarmored vehicles
+										//See http://browser.six-projects.net/cfg_vehicles/tree for all classes.
 
 _debug = true;				//Debug messages and markers. Search and replace for "DOT" with "mil_dot" in script before using in ARMA3 !
 
