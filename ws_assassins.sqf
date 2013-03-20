@@ -206,6 +206,7 @@ while {alive _unit} do {
 		//to create an array of all nearby infantry units (_listclose) and all alive infantry units of the target side (_listclosealive)
 		_unitloc = getPos _unit;
 		_listclose = (nearestObjects [_unitloc,["CAManBase"],_trgsize]) - [_unit];
+		_listclosealive = [];
 		{if (((side _x == _target_side) && alive _x)) then {_listclosealive set [(count _listclosealive),_x];};} foreach _listclose;
 
 			//DEBUG
@@ -219,9 +220,9 @@ while {alive _unit} do {
 			
 				//DEBUG
 				if (_debug) then {
-				_string = format ["ws_assassins.sqf DEBUG: Civ targeting _target:%1 in _listclosealive: %2, sleeping %3",_target1, _listclosealive,_sleep];
+				_string = format ["ws_assassins.sqf DEBUG: Civ targeting _listclosealive: %2, sleeping %3",_target1, _listclosealive,_sleep];
 				player globalchat _string;
-				};
+				};	
 				
 			sleep _sleep;
 			[_unit] join _grp;
@@ -234,7 +235,13 @@ while {alive _unit} do {
 				waitUntil {!alive _target1 || !alive _unit};
 				if (alive _unit) then {_unit enableAI "autotarget";};
 				} else {
-				_unit doTarget (_listclosealive select (floor(random(count _listclosealive ))));
+				_unit doTarget (_listclosealive select (floor(random(count _listclosealive))));
+				};
+			
+				//DEBUG
+				if (_debug) then {
+				_string = format ["ws_assassins.sqf DEBUG: Civ engaging _target1:%1 or %2 in _listclosealive: %3, sleeping %3",_target1, (_listclosealive select (floor(random(count _listclosealive)))),_listclosealive];
+				player globalchat _string;
 				};	
 			_done = true;
 		};
