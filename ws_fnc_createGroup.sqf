@@ -9,6 +9,7 @@
 // 2. Call the function during your mission with 
 // nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],[mode("attack","guard","patrol"),modifier,code],size of group, number of respawns] call ws_fnc_createGroup;
 // ARMA2 only: The Function Module must be placed in the editor
+// The function returns the created group as output
 //
 // ARMA 3:
 // Replace classes in class arrays below with valid ARMA 3 unit classes
@@ -45,6 +46,13 @@
 // ToDo:
 // - include vehicle option
 // - more flexibility ?
+
+// This code can be removed if units from the corresponding side are already in the mission before the function is called the first time.
+// (see http://community.bistudio.com/wiki/createCenter)
+_sideHQWest = createCenter west;
+_sideHQEast = createCenter east;
+_sideHQRest = createCenter resistance;
+
 
 ws_fnc_createGroup = {
 
@@ -108,11 +116,9 @@ ws_fnc_createGroup = {
    };
    
    //GROUP CREATION
-   //First a center is created for safe measure (see http://community.bistudio.com/wiki/createCenter)
-   //Second we create the group, then we loop as many times as _size and add the units from the three arrays above
-   //Thirdly, combat behaviour is set
-   
-   _sideHQ = createCenter _side;
+   //We create the group, then we loop as many times as _size and add the units from the three arrays above
+   //Then combat behaviour is set
+
    _grp = createGroup _side;
    _unitarray = [];
    
@@ -221,4 +227,6 @@ ws_fnc_createGroup = {
       _args call ws_fnc_createGroup;
       };
    };
+   
+_grp
 };
