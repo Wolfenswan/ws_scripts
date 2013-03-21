@@ -14,7 +14,7 @@
 //
 // For use with ALICE:
 // Put this in the ALICE module init:
-// [BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"ran",number,number,side OR unitname,,number of targets present (1-n), skill (0-1),false] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
+// [BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"ran",number,number,side OR unitname,number of targets present (1-n), skill (0-1),false] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
 //
 // For use with ARMA 3:
 // Use different classes in _weaponarray (see below)
