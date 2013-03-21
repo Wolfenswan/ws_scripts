@@ -105,11 +105,10 @@ _victim = objNull;
 if (_unit in ws_assassins_array) exitWith {
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1, already in ws_assassins_array:%2, exiting",_unit,ws_assassins_array];};
 };
-
 //If the civ fails the chance check there's no need to run anything else;
 //Also, women can't be assassins, ARMA is sexist that way. No assassinesses (assassinas? assassinetten?) for us,
 //Some AI features are disabled for the civ to save processing power
-if (!(_check) && (((round(random 100))> _chance)||(_unit isKindOf "Woman"))) exitWith {
+if (!(_check) && (((round(random 100))> _chance)||(_unit isKindOf "Woman")||(_unit isKindOf "Woman_EP1"))) exitWith {
 	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} count ["AUTOTARGET","TARGET"];
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: exiting because random is under %1 or is woman",_chance];};
 };
