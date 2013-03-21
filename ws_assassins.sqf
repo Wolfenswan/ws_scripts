@@ -100,20 +100,18 @@ _done = false;
 _grp = grpNull;
 _victim = objNull;
 
+//INITIAL CHECKS
 //If the unit is already a sleeper there's no reason to execute the script again
 if (_unit in ws_assassins_array) exitWith {
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1, already in ws_assassins_array:%2, exiting",_unit,ws_assassins_array];};
 };
 
-//INITIAL CHECKS
 //If the civ fails the chance check there's no need to run anything else;
 //Also, women can't be assassins, ARMA is sexist that way. No assassinesses (assassinas? assassinetten?) for us,
 //Some AI features are disabled for the civ to save processing power
-if !(_check) then {
-	if (((round(random 100))> _chance)||(_unit isKindOf "Woman")) exitWith{
+if (!(_check) && (((round(random 100))> _chance)||(_unit isKindOf "Woman"))) exitWith {
 	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} count ["AUTOTARGET","TARGET"];
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: exiting because random is under %1 or is woman",_chance];};
-	};
 };
 
 //If _check is set to (true) the script will launch itself again with the given variables.
@@ -127,7 +125,6 @@ if (_check) exitWith {
 	//DEBUG
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _check is %1, script will be run on _civarray:%2, ws_assassins_array:%3",_check,_civarray,ws_assassins_array];};
 };
-
 
 //After passing the check the unit is added to the array of global sleepers
 //The reason behind this array is avoid having the script run on a unit more than once
