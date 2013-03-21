@@ -14,7 +14,7 @@
 //
 // For use with ALICE:
 // Put this in the ALICE module init:
-// [BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"ran",number,number,side OR unitname,skill (0-1),false] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
+// [BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"ran",number,number,side OR unitname,,number of targets present (1-n), skill (0-1),false] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
 //
 // For use with ARMA 3:
 // Use different classes in _weaponarray (see below)
@@ -82,7 +82,7 @@ _check = _this select 7; //switch for affecting all civs or just one
 
 //DEBUG
 if (_debug) then {
-player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:%3,_weapon:%4,chance:%5, _trigsize:%6",_unit,_target1,_target2,_weapon,_chance,_trgsize];
+player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,target2:%3,_weapon:%4,chance:%5, _trigsize:%6, _skill: %7",_unit,_target1,_target2,_weapon,_chance,_trgsize, _skill];
 };
 
 //LOCAL VARIABLES - helpers
@@ -112,6 +112,7 @@ if (_unit in ws_assassins_array) exitWith {
 if !(_check) then {
 	if (((round(random 100))> _chance)||(_unit isKindOf "Woman")) exitWith{
 	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} count ["AUTOTARGET","TARGET"];
+	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: exiting because random is under %1 or is woman",_chance];};
 	};
 };
 
