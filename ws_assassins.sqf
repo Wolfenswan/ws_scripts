@@ -51,7 +51,7 @@
 //
 // EXAMPLES
 // nul = [this,"Sa61_EP1",(40+random 35),10,west,1,1,false] execVM "ws_assassins.sqf";
-// The civilian the script is called on will be a sleeper with a chance from 40-75 and engage any BLUFOR unit in a radius of 10 with a skorpion. His skill is 1.
+// The civilian the script is called on 40-75 chance of being a sleeper and will engage any BLUFOR unit in a radius of 10 with a skorpion. His skill is 1.
 //
 // nul = [azim,"ran",100,10,east,2,random 0.8,false] execVM "ws_assassins.sqf";
 // The civilian named "azim" will be a sleeper with a chance of 100% and engage OPFOR targets when at least 2 OPFOR units are in a radius of 10 from him. He will engage with a weapon taken from _weaponarr (see below!) and his skill is anything from 0 - 0.8.
