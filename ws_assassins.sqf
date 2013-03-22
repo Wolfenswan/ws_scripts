@@ -9,8 +9,8 @@
 //
 //
 // USAGE
-// From unit init:
-// nul = [unit,"weaponclass",chance (1-100),triggerarea (int),side OR unitname,number of targets present (1-n),skill (0-1),apply to all civilians (bool)] execVM "ws_assassins.sqf";
+// From unit init (see PARAMETERS below for detailed description and EXAMPLES at the end of the documentation)
+// nul = [this OR unitname,"weaponclass",chance (1-100),triggerarea (int),side OR unitname,number of targets present (1-n),skill (0-1),apply to all civilians (bool)] execVM "ws_assassins.sqf";
 //
 // For use with ALICE:
 // Put this in the ALICE module init:
@@ -22,7 +22,7 @@
 //
 //
 // PARAMETERS:
-// From left to right:
+// From left to right, the parameters in the array that passed to the script are:
 // 1. Has to be this in a unit inititilization or the name of an existing (civilian) unit 					| (this or objectname)
 //
 // 2. The intended Weapon class. "ran" for random weapon from _weaponarr 									| (any legal weapon class) or ""
@@ -47,15 +47,34 @@
 //   5. is not ignored in (true) but should be a side
 //	 6. and 7. are read in (true) as in the regular script
 //   In (true) The Weapons are randonmly taken from an array. Modify this array in the ws_assassins.sqf.
+//
+//
+// EXAMPLES
+// nul = [this,"Sa61_EP1",(40+random 35),10,west,1,1,false] execVM "ws_assassins.sqf";
+// The civilian the script is called on will be a sleeper with a chance from 40-75 and engage any BLUFOR unit in a radius of 10 with a skorpion. His skill is 1.
+//
+// nul = [azim,"ran",100,10,east,2,random 0.8,false] execVM "ws_assassins.sqf";
+// The civilian named "azim" will be a sleeper with a chance of 100% and engage OPFOR targets when at least 2 OPFOR units are in a radius of 10 from him. He will engage with a weapon taken from _weaponarr (see below!) and his skill is anything from 0 - 0.8.
+// 
+// nul = [this,"ran",(20 + random 20),10,mark,1,0.5,true] execVM "ws_assassins.sqf";
+// If the script is called like this it will affect ALL civilians currently in the mission and give them a 40% chance to be sleepers. They will engage the unit named "mark" with a random weapon and have a skill of 0.5
+//
+// 
 
+// SCRIPT
+
+// Script is only run serverside
 if !(isServer) exitWith {};
 
+// private variables
 private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran","_flee","_superclasses",
 "_unit","_units","_unitloc","_weaponarr","_weapon","_weaponmag","_target1","_target2","_trg","_trgsize","_debug","_chance",
 "_grp","_target","_target_type","_victim","_perfomancesleep"];
 
 
-//LOCAL VARIABLES - MODIFYABLE
+// LOCAL VARIABLES - MODIFYABLE
+// These variables can freely be defined by the user!
+
 _weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"]; //Modify this array for the randomized weapon selection.
 //ARMA 3: _weaponarr = ["hgun_Rook40_F","hgun_P07_F"];
 _flee = 1; 					//can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
@@ -67,7 +86,9 @@ _superclasses = ["CAManBase","Car"];	//The Superclasses the civilians check for 
 
 _debug = true;				//Debug messages and markers. Search and replace for "DOT" with "mil_dot" in script before using in ARMA3 !
 
+//
 //NO NEED TO MODIFY CODE BELOW HERE!
+//
 
 //LOCAL VARIABLES - scriptside
 //parsed variables
