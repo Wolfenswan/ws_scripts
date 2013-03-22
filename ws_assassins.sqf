@@ -20,13 +20,17 @@
 // Use different classes in _weaponarray (see below)
 // Debug markers are broken. Search and replace for "DOT" with "mil_dot" before using _debug = true;
 //
+// Further options:
+// Several variables can be set by the user in the script itself. See the section LOCAL VARIABLES - MODIFYABLE at the beginning of the script, after the documentation.
+// All modifyable variables are explained below.
 //
 // PARAMETERS:
 // From left to right, the parameters in the array that passed to the script are:
 // 1. Has to be this in a unit inititilization or the name of an existing (civilian) unit 					| (this or objectname)
 //
-// 2. The intended Weapon class. "ran" for random weapon from _weaponarr 									| (any legal weapon class) or ""
-//
+// 2. The intended Weapon class. "ran" for random weapon from _weaponarr 									| (any legal weapon class) or "ran"
+//	  _weaponarr can be defined below in the section LOCAL VARIABLES - MODIFYABLE.
+//	
 // 3. The chance in 100 that the civilian will actually pull a weapon and shoot. Can be random 				| (0-100)
 //
 // 4. The radius around the civilian that triggers him. Can be random 										| (any number)
@@ -36,7 +40,7 @@
 //   If set to a unitname, it will wait until the specified unit is in the area.
 //	
 // 6. How many units of the selected target side have to be in the area before the civilian					| (any number over 0)
-//   triggers. If 5. is set to a unitname this should be 1.
+//   triggers. If 5) is set to a unitname this should be 1.
 //
 // 7. The skill level of the civilian. Can be anything from 0 to 1, including decimals.						| (any number 0 to 1)
 //   See http://community.bistudio.com/wiki/setSkill
@@ -46,12 +50,12 @@
 //   3. and 4. are read in (true) and should be randomized.
 //   5. is not ignored in (true) but should be a side
 //	 6. and 7. are read in (true) as in the regular script
-//   In (true) The Weapons are randonmly taken from an array. Modify this array in the ws_assassins.sqf.
+//   In (true) The Weapons are randonmly taken from the _weaponarray. Modify this array in the ws_assassins.sqf in the section LOCAL VARIABLES - MODIFYABLE.
 //
 //
 // EXAMPLES
 // nul = [this,"Sa61_EP1",(40+random 35),10,west,1,1,false] execVM "ws_assassins.sqf";
-// The civilian the script is called on has a 40-75 chance of being a sleeper and will engage any BLUFOR unit in a radius of 10 with a skorpion. His skill is 1.
+// The civilian the script is called on has a 40-75 chance of being a sleeper and will engage any BLUFOR unit in a radius of 10 with a skorpion (ARMA 2 weapon). His skill is 1.
 //
 // nul = [azim,"ran",100,10,east,2,random 0.8,false] execVM "ws_assassins.sqf";
 // The civilian named "azim" will be a sleeper with a chance of 100% and engage OPFOR targets when at least 2 OPFOR units are in a radius of 10 from him. He will engage with a weapon taken from _weaponarr (see below!) and his skill is anything from 0 - 0.8.
@@ -73,18 +77,20 @@ private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran
 
 
 // LOCAL VARIABLES - MODIFYABLE
+
 // These variables can freely be defined by the user!
 
 _weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"]; //Modify this array for the randomized weapon selection.
-//ARMA 3: _weaponarr = ["hgun_Rook40_F","hgun_P07_F"];
-_flee = 1; 					//can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
-_sleep = round random 8; 	//How long they sleep between being triggered and pulling a gun
-_perfomancesleep = 1; 		//How often the loop is performed. Only increase this in mission with tons of civilians.
+//ARMA 3: _weaponarr = ["hgun_Rook40_F","hgun_P07_F"];  	  //An example array containing the two ARMA 3 Alpha handguns
+_flee = 1; 						//can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
+_sleep =  1+ (round random 7); 	//How long the civilian waits in seconds between being triggered and pulling a gun (default: 1 - 8 seconds)
 
+// These variables should be good as they are but can still be modified
+
+_perfomancesleep = 1; 			//How often the loop checking for nearby target is performed in seconds. Only increase this in mission with tons of civilians or when you notice serverlag.
 _superclasses = ["CAManBase","Car"];	//The Superclasses the civilians check for in their vicinity. Has to be an array! By default Infantry and unarmored vehicles
 										//See http://browser.six-projects.net/cfg_vehicles/tree for all classes.
-
-_debug = true;				//Debug messages and markers. Search and replace for "DOT" with "mil_dot" in script before using in ARMA3 !
+_debug = false;					//Debug messages and markers. Search and replace for "DOT" with "mil_dot" in script before using in ARMA3 !
 
 //
 //NO NEED TO MODIFY CODE BELOW HERE!
