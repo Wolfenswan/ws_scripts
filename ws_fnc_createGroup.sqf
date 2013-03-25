@@ -1,4 +1,4 @@
-// Group and wave spawn function
+// Group and wave spawn function v0.1 (25.03.2013)
 // By Wolfenswan [FA]: wolfenswanarps@gmail.com | folkarps.com
 //
 // Feature: 
@@ -53,15 +53,20 @@ _sideHQWest = createCenter west;
 _sideHQEast = createCenter east;
 _sideHQRest = createCenter resistance;
 
+if (isNil "ws_fnc_selectrandom") then {
+	ws_fnc_selectrandom = {
+	_selection = (_this select 0) select (floor (random (count (_this select 0))));
+	_selection
+};};
 
 ws_fnc_createGroup = {
 
-    private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_dir","_mode","_modifier","_code","_size","_respawns","_sideHQ","_ws_fnc_selectrandom","_grp","_side","_availableclasses","_unitarray"];
+    private ["_forcedclasses","_commonclasses","_rareclasses","_rarechance","_patrolarea","_behaviour","_side","_pos","_spawnpos","_movepos","_dir","_mode","_modifier","_code","_size","_respawns","_sideHQ","_grp","_side","_availableclasses","_unitarray"];
 
    //LOCAL VARIABLES - modifyable
    //Edit these variables to your leisure
    
-   _mode = ["AWARE","YELLOW"];                                             				 //Default behaviour and Combatmode
+   _behaviour = ["AWARE","YELLOW"];                                             		 //Default behaviour and Combatmode
    _forcedclasses = ["GUE_Soldier_CO","GUE_Soldier_1","GUE_Soldier_AR"];              	 //each class in _forcedclasses will be in the group exactly once
    _commonclasses = ["GUE_Soldier_1","GUE_Soldier_2","GUE_Woodlander1","GUE_Worker1"];   //regular classes included in the group
    _rareclasses = ["GUE_Soldier_AT","GUE_Soldier_MG"];                             		 //special classes (of _rarechance chance to be in group)
@@ -105,15 +110,6 @@ ws_fnc_createGroup = {
    
    //Getting the degree the _spawnpos is from the _movepos
    _dir = ((_movepos select 0) - (_spawnpos select 0)) atan2 ((_movepos select 1) - (_spawnpos select 1));
-      
-   //RANDOM SELECTION FUNCTION
-   //To make the code look a bit nicer, we use a simple function to randomly select an element from an array
-   //We could use BIS_fnc_selectRandom, but that would require the Funtion Module to be present in the mission
-   
-   _ws_fnc_selectrandom = {
-   _selection = (_this select 0) select (floor (random (count (_this select 0))));
-   _selection
-   };
    
    //GROUP CREATION
    //We create the group, then we loop as many times as _size and add the units from the three arrays above
@@ -127,9 +123,9 @@ ws_fnc_createGroup = {
       _unit = _grp createUnit [_forcedclasses select (_x - 1),_spawnpos,[],5,"NONE"];
       } else {
          if ((floor round random 100) < _rarechance) then {
-         _unit = _grp createUnit [[_rareclasses] call _ws_fnc_selectrandom,_spawnpos,[],5,"NONE"];
+         _unit = _grp createUnit [[_rareclasses] call ws_fnc_selectrandom,_spawnpos,[],5,"NONE"];
          } else {
-         _unit = _grp createUnit [[_commonclasses] call _ws_fnc_selectrandom,_spawnpos,[],5,"NONE"];
+         _unit = _grp createUnit [[_commonclasses] call ws_fnc_selectrandom,_spawnpos,[],5,"NONE"];
          };
       };
 	  _unit setDir _dir;

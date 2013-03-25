@@ -63,7 +63,9 @@
 // nul = [this,"ran",(20 + random 20),10,mark,1,0.5,true] execVM "ws_assassins.sqf";
 // If the script is called like this it will affect ALL civilians currently in the mission and give them a 40% chance to be sleepers. They will engage the unit named "mark" with a random weapon and have a skill of 0.5
 //
-// 
+// TODO
+// Add functionality to attack all sides
+// Functionality to attack specific faction (using check against BIS_fnc_getFactions) 
 
 // SCRIPT
 
