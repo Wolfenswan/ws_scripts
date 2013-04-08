@@ -181,30 +181,6 @@ ws_fnc_createGroup = {
 	  default {player globalchat "ws_fnc_createGroup DEBUG: Error. _mode must be 'move','attack','guard' or 'patrol'"};
    };
 
-   //DEBUG
-   //Debug creates various markers and text messages helping to indicate where/when groups are spawned.
-   
-   if (_debug) then {
-   player globalchat format ["DEBUG: ws_spawn. Group created. _grp:%1 of size: %2 with %3 respawns",_grp,count units _grp,_respawns];
-   
-      _mkr = createMarker [format ["Group_%1",_grp], _spawnpos];
-      _mkr setMarkerType "Dot";
-      _mkr setMarkerColor "ColorBlue";
-      _mkr setMarkerText format ["DBG:group %1",_grp];
-      
-      _mkr = createMarker [format ["Group_%1-WP",_grp], _movepos];
-      _mkr setMarkerType "Dot";
-      _mkr setMarkerColor "ColorBlue";
-      _mkr setMarkerText format ["DBG:Group_%1-WP",_grp];
-      
-      [_grp,_mkr] spawn {
-         while {alive (leader (_this select 0))} do {
-         sleep 5;
-         (_this select 1) setMarkerPos (getPos (leader (_this select 0)));
-         };
-      };
-   };
-   
    //UNIT RESPAWN
    //Every 5 seconds we'll get a headcount of the group and if it's zero, a new group with the same conditions will spawn
    //To make this work we have to spawn a script run in parallel, as we can't use sleep in call space (where this function is run)
@@ -221,6 +197,32 @@ ws_fnc_createGroup = {
          sleep 5;
       };
       _args call ws_fnc_createGroup;
+      };
+   };
+   
+     //DEBUG
+   //Debug creates various markers and text messages helping to indicate where/when groups are spawned.
+   
+   if (_debug) then {
+   player globalchat format ["DEBUG: ws_spawn. Group created. _grp:%1 of size: %2 with %3 respawns",_grp,count units _grp,_respawns];
+   
+	  _mkr = createMarker [format ["Group_%1-WP",_grp], _movepos];
+      _mkr setMarkerType "Dot";
+      _mkr setMarkerColor "ColorYellow";
+      _mkr setMarkerText format ["DBG:Group_%1-WP",_grp];
+   
+      _mkr = createMarker [format ["Group_%1",_grp], _spawnpos];
+      _mkr setMarkerType "Dot";
+      _mkr setMarkerColor "ColorBlue";
+      _mkr setMarkerText format ["DBG:group %1",_grp];
+  
+      [_grp,_mkr] spawn {
+         while {alive (leader (_this select 0))} do {
+         sleep 5;
+         (_this select 1) setMarkerPos (getPos (leader (_this select 0)));
+		 
+		 _mkr setMarkerColor "ColorRed";
+         };
       };
    };
    

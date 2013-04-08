@@ -3,34 +3,49 @@
 //
 // Feature: Vehicle crews will only bail when the vehicle damage is over x (by default 0.8) or the guns are destroyed
 //
-// Usage: [] execVM "ws_bettervehicles.sqf" in the init.sqf
+// Usage: [side,0.8] execVM "ws_bettervehicles.sqf" in the init.sqf
 //
-// Customization: 
-// To remove dependency on F2, remove the waituntil and change _vehicles = f_var_vehicles to _vehicles = vehicles;
 
 if !(isServer) exitWith {}; 
-sleep 0.0001;
 
-// WAIT FOR COMMON VARIABLES TO BE SET
-// Before executing this script, we wait for the script 'f_setLocalVars.sqf' to run:
+private ["_alloweddamage","_debug","_selection","_vehicles","_selection","_side"];
 
-waitUntil {scriptDone f_setLocalVars};
+_debug = false; if !(isNil "ws_debug") then {_debug = ws_debug};   //Debug mode. If ws_debug is globally defined it overrides _debug
 
-// _vehicles = vehicles;
-_vehicles = f_var_vehicles; //f_var_vehicles_BLU f_var_vehicles_RES f_var_vehicles_OPF for faction specific vehicles
-_sleep = 1; //increase _sleep when using a lot of vehicles  or you're experiencing sever strain
-_alloweddamage = 0.8; //damage allowed before the group bails no matter what
+// Usage with F2:
+// waitUntil {scriptDone f_setLocalVars};
+// _vehicles = f_var_vehicles; //f_var_vehicles_BLU f_var_vehicles_RES f_var_vehicles_OPF
+_selection = vehicles;
+
+// We collect all crewed vehicles on the map
+_side = _this select 0;
+_alloweddamage = _this select 1; //damage allowed before the group bails no matter what
+
+_vehicles = [];
+{if ((count crew _x > 0) && !(_x isKindOf "StaticWeapon")&& side _x == _side) then [{
+	_vehicles = _vehicles + [_x];},{if _debug then {player sidechat format ["ws_bettervehicles DBG: %1 has no crew or is a static weapon",_x]};}];
+} forEach _selection;
+
+
+
+if _debug then {player sidechat format ["ws_bettervehicles DBG: _vehicles: %1",_vehicles]};
 
 {
-_x lockDriver true;
-_x allowCrewInImmobile true;
-[_x] spawn {
-	_unit = _this select 0;
-	while {damage _unit < _alloweddamage && canFire _unit} do 
-	{
-	sleep _sleep;
-	};
-	_unit allowCrewInImmobile false;
-	{_x action ["eject", _unit];} forEach crew _unit;
+if (isNil format["%1",(_x getVariable "ws_better_vehicle")]) then {
+	[_x,_alloweddamage,_debug] spawn {
+		private ["_unit","_alloweddamage"];
+		_unit = _this select 0;
+		_unit allowCrewInImmobile true;
+		_unit setvariable ["ws_better_vehicle",true];	
+		_alloweddamage = _this select 1;
+		
+		while {damage _unit < _alloweddamage && canFire _unit} do 
+		{
+			sleep 2.5;
+		};
+		_unit allowCrewInImmobile false;
+		{_x action ["eject", _unit];} forEach crew _unit;
+		if (_this select 2) then {player sidechat format ["ws_bettervehicles DBG: %1 has taken enough damage or can't fire any more. crew bailing",_unit]};
+	   };
    };
 } forEach _vehicles;
