@@ -65,7 +65,8 @@
 //
 // TODO
 // Add functionality to attack all sides
-// Functionality to attack specific faction (using check against BIS_fnc_getFactions) 
+// Functionality to attack specific faction (using check against BIS_fnc_getFactions)
+// Replace check whether civ is assassin or not with set/getVariable instead of array
 
 // SCRIPT
 
@@ -138,7 +139,7 @@ if (_unit in ws_assassins_array) exitWith {
 //Also, women can't be assassins, ARMA is sexist that way. No assassinesses (assassinas? assassinetten?) for us,
 //Some AI features are disabled for the civ to save processing power
 if (!(_check) && (((round(random 100))> _chance)||(_unit isKindOf "Woman")||(_unit isKindOf "Woman_EP1"))) exitWith {
-	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} count ["AUTOTARGET","TARGET"];
+	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} forEach ["AUTOTARGET","TARGET"];
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: exiting because random is under %1 or is woman",_chance];};
 };
 
