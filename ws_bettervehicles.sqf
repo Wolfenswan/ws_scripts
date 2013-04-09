@@ -22,7 +22,7 @@ _side = _this select 0;
 _alloweddamage = _this select 1; //damage allowed before the group bails no matter what
 
 _vehicles = [];
-{if ((count crew _x > 0) && !(_x isKindOf "StaticWeapon")&& side _x == _side) then [{
+{if ((count crew _x > 0) && !(_x isKindOf "StaticWeapon")&& side _x == _side && canfire _x) then [{
 	_vehicles = _vehicles + [_x];},{if _debug then {player sidechat format ["ws_bettervehicles DBG: %1 has no crew or is a static weapon",_x]};}];
 } forEach _selection;
 
