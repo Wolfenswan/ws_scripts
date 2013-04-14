@@ -9,11 +9,11 @@
 // 2. Call the function during your mission with 
 // nul = [side,["spawnmarker" OR object OR valid pos,"targetmarker" OR object OR valid pos],[mode("attack","guard","patrol"),modifier,code],size of group, number of respawns] call ws_fnc_createGroup;
 // ARMA2 only: The Function Module must be placed in the editor
+//
 // The function returns the created group as output
 //
 // ARMA 3:
 // Replace classes in class arrays below with valid ARMA 3 unit classes
-// If intending to use debug mode, search and replace for "dot" with "mil_dot", otherwise debug markers will be broken.
 //
 // PARAMETERS:
 // 1.The side of the group: east, west, resistence, civilian
@@ -80,7 +80,7 @@ ws_fnc_createGroup = {
    
    _rarechance = 25;
  
-   _debug = true;                                                         //Debug mode for progress messages and group markers.search and replace for "dot" with "mil_dot" before using with ARMA3!
+   _debug = true;                                                         //Debug mode for progress messages and group markers.
 
    //LOCAL VARIABLES - scriptside
    //variables taken from the array
@@ -207,12 +207,12 @@ ws_fnc_createGroup = {
    player globalchat format ["DEBUG: ws_spawn. Group created. _grp:%1 of size: %2 with %3 respawns",_grp,count units _grp,_respawns];
    
 	  _mkr = createMarker [format ["Group_%1-WP",_grp], _movepos];
-      _mkr setMarkerType "Dot";
+      _mkr setMarkerType "mil_dot";
       _mkr setMarkerColor "ColorYellow";
       _mkr setMarkerText format ["DBG:Group_%1-WP",_grp];
    
       _mkr = createMarker [format ["Group_%1",_grp], _spawnpos];
-      _mkr setMarkerType "Dot";
+      _mkr setMarkerType "mil_dot";
       _mkr setMarkerColor "ColorBlue";
       _mkr setMarkerText format ["DBG:group %1",_grp];
   

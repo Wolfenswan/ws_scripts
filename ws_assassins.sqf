@@ -18,8 +18,6 @@
 //
 // For use with ARMA 3:
 // Use different classes in _weaponarray (see below)
-// Debug markers are broken. Search and replace for "DOT" with "mil_dot" before using _debug = true;
-//
 // Further options:
 // Several variables can be set by the user in the script itself. See the section LOCAL VARIABLES - MODIFYABLE at the beginning of the script, after the documentation.
 // All modifyable variables are explained below.
@@ -93,7 +91,7 @@ _sleep =  1+ (round random 7); 	//How long the civilian waits in seconds between
 _perfomancesleep = 1; 			//How often the loop checking for nearby target is performed in seconds. Only increase this in mission with tons of civilians or when you notice serverlag.
 _superclasses = ["CAManBase","Car"];	//The Superclasses the civilians check for in their vicinity. Has to be an array! By default Infantry and unarmored vehicles
 										//See http://browser.six-projects.net/cfg_vehicles/tree for all classes.
-_debug = false;					//Debug messages and markers. Search and replace for "DOT" with "mil_dot" in script before using in ARMA3 !
+_debug = false;					//Debug messages and markers.
 
 //
 //NO NEED TO MODIFY CODE BELOW HERE!
@@ -212,7 +210,7 @@ player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1,_target1:%2,_target2
 	_string = format ["civ_%1",_unit];
 	player sidechat _string;
 	_mkr = createMarker [_string, (getPos _unit)];
-    _mkr setMarkerType "Dot";
+    _mkr setMarkerType "mil_dot";
     _mkr setMarkerColor "ColorBlue";
     _mkr setMarkerText  _string;
 	
