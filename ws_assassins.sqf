@@ -85,7 +85,7 @@ private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran
 //_weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"];
 
  //Modify and de-comment this array for the randomized weapon selection in ArmA3.
-_weaponarr = ["hgun_Rook40_F","hgun_P07_F","hgun_ACPC2_F","SMG_01_F"];
+_weaponarr = ["hgun_Rook40_F","hgun_P07_F","hgun_ACPC2_F","hgun_PDW2000_F"];
 
 //can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
 _flee = 1;
@@ -147,7 +147,7 @@ if (typename _unit == "BOOL") then {_check = _unit};
 _civarray = [];
 if (_check) exitWith {
 	{if (((side _x) == civilian) && !(isplayer _x) ) then {_civarray = _civarray + [_x]}} forEach allUnits;
-	{[_x,"",_chance,_trgsize,_target1,_target2,_skill] execVM "ws_assassins.sqf";} forEach _civarray;
+	{[_x,_weapon,_chance,_trgsize,_target1,_target2,_skill] execVM "ws_assassins.sqf";} forEach _civarray;
 
 	//DEBUG
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _check is %1, script will be run on _civarray:%2",_check,_civarray];};
@@ -265,14 +265,14 @@ while {alive _unit} do {
 				_string = format ["ws_assassins.sqf DEBUG: Civ targeting _listclosealive: %2, sleeping %3",_target1, _listclosealive,_sleep];
 				player globalchat _string;
 				};
+			doStop _unit;
 			[_unit] joinSilent grpNull;
 			sleep _sleep;
-			doStop _unit;
-			_unit setCombatMode "RED";
-			_unit setBehaviour "AWARE";
-			[_unit] joinSilent _grp;
 			//1 - 3 second delay before the assassin starts engaging
 			sleep 1+(random 2);
+			[_unit] joinSilent _grp;
+			_unit setCombatMode "RED";
+			_unit setBehaviour "AWARE";
 			{_unit addMagazine _weaponmag;} forEach [1,2,3,4];
 			_unit addWeapon _weapon;
 
