@@ -268,8 +268,6 @@ while {alive _unit} do {
 			doStop _unit;
 			[_unit] joinSilent grpNull;
 			sleep _sleep;
-			//1 - 3 second delay before the assassin starts engaging
-			sleep 1+(random 2);
 			[_unit] joinSilent _grp;
 			_unit setCombatMode "RED";
 			_unit setBehaviour "AWARE";
