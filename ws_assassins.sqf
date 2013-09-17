@@ -157,7 +157,10 @@ if (!(_check) && (((round(random 100))> _chance)||(_unit isKindOf "Woman")||(_un
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: exiting because random is under %1 or is woman",_chance];};
 };
 
-//After passing the check the unit is flagged to be an assassin
+//If the unit's dead already just exit
+if (!alive _unit) exitWith {};
+
+//After passing all checks the unit is flagged to be an assassin
 _unit setVariable ["ws_assassin",true];
 
 //DEBUG
@@ -264,6 +267,7 @@ while {alive _unit} do {
 			_unit setBehaviour "AWARE";
 			{_unit addMagazine _weaponmag;} forEach [1,2,3,4];
 			_unit addWeapon _weapon;
+			_unit selectWeapon _weapon;
 
 				if (typename _target1 == "OBJECT") then {
 					_victim = _target1;
@@ -271,17 +275,20 @@ while {alive _unit} do {
 					_victim = (_listclosealive select (floor(random(count _listclosealive))));
 				};
 
+			sleep 0.001;
 			_unit doTarget _victim;
+			sleep 0.001;
+			_unit doFire _victim;
 
-				//DEBUG
-				if (_debug) then {
-				_string = format ["ws_assassins.sqf DEBUG: Civ engaging _target1:%1 or %2 in _listclosealive: %3, sleeping %4 seconds",_target1, (_listclosealive select (floor(random(count _listclosealive)))),_listclosealive,_sleep];
-				player globalchat _string;
-				};
-
-			waitUntil {!alive _victim || !alive _unit};
+			sleep 5;
 			if (alive _unit) then {_unit enableAI "autotarget";};
 			_done = true;
+
+			//DEBUG
+			if (_debug) then {
+			_string = format ["ws_assassins.sqf DEBUG: Civ engaging _target1:%1 or %2 in _listclosealive: %3, sleeping %4 seconds",_target1, (_listclosealive select (floor(random(count _listclosealive)))),_listclosealive,_sleep];
+			player globalchat _string;
+			};
 		};
 	sleep _perfomancesleep;
 	};
