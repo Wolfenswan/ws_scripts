@@ -1,17 +1,17 @@
-// Civilian assassins and sleeper agents
-// By Wolfenswan [FA]: wolfenswanarps@gmail.com | folkarps.com
-// Video showcase: https://www.youtube.com/watch?v=wLw7mqZDpgk
-//
-//
-// FEATURE
-// Turns a select number or a randomized amount of all civilians into potential assassins, attacking either a side or a specific target
-// ALICE compatible
-//
-//
-// USAGE
-// From unit init (see PARAMETERS below for detailed description and EXAMPLES at the end of the documentation)
-// nul = [this OR unitname,"weaponclass",chance (1-100),triggerarea (int),side OR unitname,number of targets present (1-n),skill (0-1),apply to all civilians (bool)] execVM "ws_assassins.sqf";
-/*
+/* Civilian assassins and sleeper agents
+By Wolfenswan [FA]: wolfenswanarps@gmail.com | folkarps.com
+Video showcase: https://www.youtube.com/watch?v=wLw7mqZDpgk
+
+
+FEATURE
+Turns a select number or all civilians into "sleeper agents", attacking either a side or a specific target
+ALICE compatible
+
+
+USAGE
+From unit init or anywhere in the mission (see PARAMETERS below for detailed description and EXAMPLES at the end of the documentation)
+nul = [this OR unitname OR true,"weaponclass",chance (1-100),triggerarea (int),side OR unitname,number of targets present (1-n),skill (0-1)] execVM "ws_assassins.sqf";
+
 
 For use with ALICE (ArmA 2 only!):
 Put this in the ALICE module init:
@@ -25,31 +25,25 @@ All modifyable variables are explained below.
  */
 // PARAMETERS:
 // From left to right, the parameters in the array that passed to the script are:
-// 1. Has to be this in a unit inititilization, the name of an existing (civilian) unit 					| (this or objectname) or true to affect all civilians
+// 1. Has to be this in a unit inititilization, the name of an existing (civilian) unit or true to affect all present civilians			| this, object or true
 //
-// 2. The intended Weapon class. "" for random weapon from _weaponarr 									| (any legal weapon class) or ""
-//	  _weaponarr can be defined below in the section LOCAL VARIABLES - MODIFYABLE.
+// 2. The intended Weapon class. "" for random weapon from _weaponarr 									| "" or a weapon class
+//  _weaponarr can be defined below in the section LOCAL VARIABLES - MODIFYABLE.
+// "" is recommended when applying to all civilians
 //
-// 3. The chance in 100 that the civilian will actually pull a weapon and shoot. Can be random 				| (0-100)
+// 3. The chance in 100 that the civilian will actually pull a weapon and shoot. Can be random 						| (0-100)
 //
 // 4. The radius around the civilian that triggers him. Can be random 										| (any number)
 //
-// 5. MOST IMPORTANT. What the civilian will attack:															| west, east, resistance or civilian
-//   If set to on west,east or resistance he will trigger when any alive unit of that type is near			| OR unitname
+// 5. MOST IMPORTANT. What the civilian will attack:												| west, east, resistance or civilian
+//   If set to on west,east or resistance he will trigger when any alive unit of that type is near						| OR unitname
 //   If set to a unitname, it will wait until the specified unit is in the area.
 //
-// 6. How many units of the selected target side have to be in the area before the civilian					| (any number over 0)
+// 6. How many units of the selected target side have to be in the area before the civilian							| (any number over 0)
 //   triggers. If 5) is set to a unitname this should be 1.
 //
-// 7. The skill level of the civilian. Can be anything from 0 to 1, including decimals.						| (any number 0 to 1)
+// 7. The skill level of the civilian. Can be anything from 0 to 1, including decimals.								| (any number 0 to 1)
 //   See http://community.bistudio.com/wiki/setSkill
-//
-// 8.Switch to control wether settings apply to all civilians (true) or only the specified one (false)		| (true or false)
-//   2. is ignored when set to (true)
-//   3. and 4. are read in (true) and should be randomized.
-//   5. is not ignored in (true) but should be a side
-//	 6. and 7. are read in (true) as in the regular script
-//   In (true) The Weapons are randonmly taken from the _weaponarray. Modify this array in the ws_assassins.sqf in the section LOCAL VARIABLES - MODIFYABLE.
 //
 //
 // EXAMPLES
@@ -59,24 +53,21 @@ All modifyable variables are explained below.
 // nul = [azim,"ran",100,10,east,2,random 0.8] execVM "ws_assassins.sqf";
 // The civilian named "azim" will be a sleeper with a chance of 100% and engage OPFOR targets when at least 2 OPFOR units are in a radius of 10 from him. He will engage with a weapon taken from _weaponarr (see below!) and his skill is anything from 0 - 0.8.
 //
-// nul = [this,"ran",(20 + random 20),10,mark,1,0.5] execVM "ws_assassins.sqf";
-// If the script is called like this it will affect ALL civilians currently in the mission and give them a 40% chance to be sleepers. They will engage the unit named "mark" with a random weapon and have a skill of 0.5
+// nul = [true,"LMG_Zafir_F",(20 + random 20),10,mark,1,0.5] execVM "ws_assassins.sqf";
+// If the script is called like this it will affect ALL civilians currently in the mission (expect for the ones that are already sleepers) and give them a 40% chance to be sleepers. They will engage the unit named "mark" with a Zafir LMG and have a skill of 0.5
 //
 // TODO
 // Add functionality to attack all sides
 // Functionality to attack specific faction (using check against BIS_fnc_getFactions)
-// Replace check whether civ is assassin or not with set/getVariable instead of array
+// Typename checks against parsed varialbes to make script more robust
+//
 
 // SCRIPT
-
 // Script is only run serverside
 if !(isServer) exitWith {};
-
-// private variables
 private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran","_flee","_superclasses",
 "_unit","_units","_unitloc","_weaponarr","_weapon","_weaponmag","_target1","_target2","_trg","_trgsize","_debug","_chance",
 "_grp","_target","_target_type","_victim","_perfomancesleep","_game","_handle"];
-
 
 // LOCAL VARIABLES - MODIFYABLE
 // These variables can freely be defined by the user!
