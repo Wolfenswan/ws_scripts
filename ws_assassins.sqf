@@ -73,10 +73,10 @@ private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran
 // These variables can freely be defined by the user!
 
 //Modify and de-comment this array for the randomized weapon selection in ArmA2.
-_weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"];
+//_weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"];
 
  //Modify and de-comment this array for the randomized weapon selection in ArmA3.
-//_weaponarr = ["hgun_Rook40_F","hgun_P07_F","hgun_ACPC2_F","hgun_PDW2000_F"];
+_weaponarr = ["hgun_Rook40_F","hgun_P07_F","hgun_ACPC2_F","hgun_PDW2000_F"];
 
 //can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
 _flee = 1;
@@ -283,12 +283,13 @@ while {alive _unit} do {
 				};
 
 			sleep 0.001;
+			_unit enableAI "Target";
 			_unit doTarget _victim;
 			sleep 0.001;
 			_unit doFire _victim;
 
 			sleep 5;
-			if (alive _unit) then {_unit enableAI "autotarget";_unit enableAI "Target"};
+			if (alive _unit) then {_unit enableAI "autotarget";};
 			_done = true;
 
 			//DEBUG
