@@ -15,7 +15,7 @@ nul = [this OR unitname OR true,"weaponclass",chance (1-100),triggerarea (int),s
 
 For use with ALICE (ArmA 2 only!):
 Put this in the ALICE module init:
-[BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"ran",number,number,side OR unitname,number of targets present (1-n), skill (0-1),false] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
+[BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"",number,number,side OR unitname,number of targets present (1-n), skill (0-1),false] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
 
 
 Further options:
@@ -54,7 +54,7 @@ All modifyable variables are explained below.
 // The civilian named "azim" will be a sleeper with a chance of 100% and engage OPFOR targets when at least 2 OPFOR units are in a radius of 10 from him. He will engage with a weapon taken from _weaponarr (see below!) and his skill is anything from 0 - 0.8.
 //
 // nul = [true,"LMG_Zafir_F",(20 + random 20),10,mark,1,0.5] execVM "ws_assassins.sqf";
-// If the script is called like this it will affect ALL civilians currently in the mission (expect for the ones that are already sleepers) and give them a 40% chance to be sleepers. They will engage the unit named "mark" with a Zafir LMG and have a skill of 0.5
+// If the script is called like this it will affect ALL civilians currently in the mission (expect for the ones that are already sleepers) and give them a 40% chance to be sleepers. They will engage the unit named "mark" with a Zafir LMG (ArmA 3) and have a skill of 0.5
 //
 // TODO
 // Add functionality to attack all sides
@@ -73,10 +73,10 @@ private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran
 // These variables can freely be defined by the user!
 
 //Modify and de-comment this array for the randomized weapon selection in ArmA2.
-//_weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"];
+_weaponarr = ["Sa61_EP1","UZI_EP1","revolver_EP1","Makarov"];
 
  //Modify and de-comment this array for the randomized weapon selection in ArmA3.
-_weaponarr = ["hgun_Rook40_F","hgun_P07_F","hgun_ACPC2_F","hgun_PDW2000_F"];
+//_weaponarr = ["hgun_Rook40_F","hgun_P07_F","hgun_ACPC2_F","hgun_PDW2000_F"];
 
 //can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
 _flee = 1;
@@ -99,6 +99,12 @@ _debug = true;
 //
 //NO NEED TO MODIFY CODE BELOW HERE!
 //
+
+//Declaring default variables
+
+_chance = 25 + round random 25;
+_trgsize = 10;
+_skill = 0.1 + round random 0.4;
 
 //LOCAL VARIABLES - scriptside
 //parsed variables
@@ -171,6 +177,7 @@ _unit allowfleeing _flee;
 _unit setSkill _skill;
 //[_unit] joinSilent grpNull;
 _unit disableAI "AUTOTARGET";
+_unit disableAI "Target";
 
 //Weapon selection, Random if set to "ran"
 if (_weapon == "") then {
@@ -281,7 +288,7 @@ while {alive _unit} do {
 			_unit doFire _victim;
 
 			sleep 5;
-			if (alive _unit) then {_unit enableAI "autotarget";};
+			if (alive _unit) then {_unit enableAI "autotarget";_unit enableAI "Target"};
 			_done = true;
 
 			//DEBUG
