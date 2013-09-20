@@ -23,11 +23,14 @@ PARAMETERS
 
 KNOWN ISSUES
 For perfomance reasons all civs are in the same group. They won't all gather at the same place though.
+Civilians will have AutoTarget and Target disabled. You need to renable it on a civ if you want them to enage something.
 Civilians aren't exactly lively.
 Car placement can be somewhat odd.
+Some civilians are sunk into building floors.
 
 TODO
 Improve car placement
+Reliably unstick civs from floor
 Add armed guards?
 */
 if !(isServer) exitWith {};
@@ -107,10 +110,9 @@ _center setVariable ["ws_civilians",_civilians +[_civ]];
 _civilians = _center getVariable "ws_civilians";
 doStop _civ;
 _grp enableAttack false;
-_civ disableAI "Autotarget";
+_civ disableAI "Autotarget"; _civ disableAI "target";
 _civ setDir (random 360);
-_civ setposatl  [getpos _civ select 0,getPos _civ select 1,0.5];
-_civ setVectorUp(surfaceNormal(getPos _civ));
+if (getPosATL _civ select 2 != _x select 2) then {_civ setPos [_x select 0,_x select 1,1];_civ setposatl  _x};
 } forEach _posarray;
 
 
