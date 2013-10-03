@@ -15,7 +15,7 @@ nul = [this OR unitname OR true,"weaponclass",chance (1-100),triggerarea (int),s
 
 For use with ALICE (ArmA 2 only!):
 Put this in the ALICE module init:
-[BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"",number,number,side OR unitname,number of targets present (1-n), skill (0-1),false] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
+[BIS_alice_mainscope,"ALICE_civilianinit",[{nul = [_this,"",number,number,side OR unitname,number of targets present (1-n), skill (0-1)] execVM 'ws_assassins.sqf'}]] call BIS_fnc_variableSpaceAdd;
 
 
 Further options:
@@ -84,7 +84,8 @@ _flee = 1;
 //How long the civilian waits in seconds between being triggered and pulling a gun (default: 1 - 8 seconds)
 _sleep =  1+ (round random 7);
 
-// These variables should be good as they are but can still be modified
+//Debug messages and markers.
+_debug = true;
 
 //How often the loop checking for nearby target is performed in seconds. Only increase this in mission with tons of civilians or when you notice serverlag.
 _perfomancesleep = 5;
@@ -92,9 +93,6 @@ _perfomancesleep = 5;
 //The Superclasses the civilians check for in their vicinity. Has to be an array! By default Infantry and unarmored vehicles
 //See http://browser.six-projects.net/cfg_vehicles/tree for all classes.
 _superclasses = ["CAManBase","Car"];
-
-//Debug messages and markers.
-_debug = true;
 
 //
 //NO NEED TO MODIFY CODE BELOW HERE!
@@ -150,23 +148,24 @@ if (_check) exitWith {
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _check is %1, script will be run on _civarray:%2",_check,_civarray];};
 };
 
-//If the unit is already a sleeper there's no reason to execute the script again
+//If the unit has already been touched by the script there's no need to execute the script again
 _handle = _unit getVariable ["ws_assassin",false];
 if (_handle) exitWith {
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: _unit:%1 has ws_assassin handle:%2, exiting",_unit,_handle];};
 };
-//If the civ fails the chance check there's no need to run anything else;
+//If the civ fails the chance check there's no need to run anything else; We set the flag to make sure he's not affected again
 //Also, women can't be assassins, ARMA is sexist that way. No assassinesses (assassinas? assassinetten?) for us,
 //Some AI features are disabled for the civ to save processing power
 if (!(_check) && (((round(random 100))> _chance)||(_unit isKindOf "Woman")||(_unit isKindOf "Woman_EP1"))) exitWith {
 	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} forEach ["AUTOTARGET","TARGET"];
+	_unit setVariable ["ws_assassin",true];
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: exiting because random is under %1 or is woman",_chance];};
 };
 
 //If the unit's dead already just exit
 if (!alive _unit) exitWith {};
 
-//After passing all checks the unit is flagged to be an assassin
+//After passing all checks we flag the unit to make sure the script doesn't run on it again.
 _unit setVariable ["ws_assassin",true];
 
 //DEBUG
