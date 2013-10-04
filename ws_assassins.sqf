@@ -10,7 +10,9 @@ ALICE compatible
 
 USAGE
 From unit init or anywhere in the mission (see PARAMETERS below for detailed description and EXAMPLES at the end of the documentation)
-nul = [this OR unitname OR true,"weaponclass",chance (1-100),triggerarea (int),side OR unitname,number of targets present (1-n),skill (0-1)] execVM "ws_assassins.sqf";
+nul = [this OR unitname OR true,"weaponclass",chance (1-100),triggerarea (int),side OR unitname] execVM "ws_assassins.sqf";
+With optional parameters:
+nul = [this OR unitname OR true,"weaponclass",chance (1-100),triggerarea (int),side OR unitname,number of targets present (1-n),skill mod (0-1)] execVM "ws_assassins.sqf";
 
 
 For use with ALICE (ArmA 2 only!):
@@ -27,23 +29,22 @@ All modifyable variables are explained below.
 // From left to right, the parameters in the array that passed to the script are:
 // 1. Has to be this in a unit inititilization, the name of an existing (civilian) unit or true to affect all present civilians			| this, object or true
 //
-// 2. The intended Weapon class. "" for random weapon from _weaponarr 									| "" or a weapon class
+// 2. The intended Weapon class. "" for random weapon from _weaponarr 								| "" or a weapon class
 //  _weaponarr can be defined below in the section LOCAL VARIABLES - MODIFYABLE.
 // "" is recommended when applying to all civilians
 //
 // 3. The chance in 100 that the civilian will actually pull a weapon and shoot. Can be random 						| (0-100)
 //
-// 4. The radius around the civilian that triggers him. Can be random 										| (any number)
+// 4. The radius around the civilian that triggers him. Can be random 									| (any number)
 //
-// 5. MOST IMPORTANT. What the civilian will attack:												| west, east, resistance or civilian
+// 5. MOST IMPORTANT. What the civilian will attack:											| west, east, resistance or civilian
 //   If set to on west,east or resistance he will trigger when any alive unit of that type is near						| OR unitname
 //   If set to a unitname, it will wait until the specified unit is in the area.
 //
-// 6. How many units of the selected target side have to be in the area before the civilian							| (any number over 0)
-//   triggers. If 5) is set to a unitname this should be 1.
+// 6. How many units of the selected target side have to be in the area before the civilian						| (any number over 0), OPTIONAL (default is 1)
+//   triggers. If 5) is set to a unitname this is always 1.
 //
-// 7. The skill level of the civilian. Can be anything from 0 to 1, including decimals.								| (any number 0 to 1)
-//   See http://community.bistudio.com/wiki/setSkill
+// 7. The skill range for each civilian. This indicates the range every individual skill can vary between sleepers			| (any number 0 to 1) , OPTIONAL (default is +/- 0.2 - 0.4)
 //
 //
 // EXAMPLES
@@ -65,7 +66,7 @@ All modifyable variables are explained below.
 // SCRIPT
 // Script is only run serverside
 if !(isServer) exitWith {};
-private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran","_flee","_superclasses",
+private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran","_flee","_skillSet","_superclasses",
 "_unit","_units","_unitloc","_weaponarr","_weapon","_weaponmag","_target1","_target2","_trg","_trgsize","_debug","_chance",
 "_grp","_target","_target_type","_victim","_perfomancesleep","_game","_handle"];
 
@@ -79,10 +80,24 @@ private ["_count","_done","_check","_listclose","_listclosealive","_sleep","_ran
 _weaponarr = ["hgun_Rook40_F","hgun_P07_F","hgun_ACPC2_F","hgun_PDW2000_F"];
 
 //can be any value between 0 and 1. if 1 the sleepers flee as long as they are disguised, if 0 they are less prone to (but still might)
-_flee = 1;
+_flee = 0.5;
 
 //How long the civilian waits in seconds between being triggered and pulling a gun (default: 1 - 8 seconds)
 _sleep =  1+ (round random 7);
+
+//The skill set that will be used to calculate the civilian's skills. Each value can vary by +/- the passed skill modificator.
+_skillSet = [
+0.25,		// aimingAccuracy
+1,		// aimingShake
+0.7,		// aimingSpeed
+1,		// endurance
+0.4,		// spotDistance
+0.4,		// spotTime
+1,		// courage
+1,		// reloadSpeed
+1,		// commanding
+1		// general
+];
 
 //Debug messages and markers.
 _debug = true;
@@ -102,7 +117,8 @@ _superclasses = ["CAManBase","Car"];
 
 _chance = 25 + round random 25;
 _trgsize = 10;
-_skill = 0.1 + round random 0.4;
+_target2 = 1;
+_skill = 0.2 + random 0.2;
 
 //LOCAL VARIABLES - scriptside
 //parsed variables
@@ -111,8 +127,8 @@ _weapon = _this select 1;
 _chance = _this select 2;
 _trgsize = _this select 3;
 _target1 = _this select 4; //the legit target class (can be a side or a unit name)
-_target2 = _this select 5; //the number of valid targets that have to be in the area
-_skill = _this select 6;
+if (count _this > 5) then {_target2 = _this select 5;}; //the number of valid targets that have to be in the area
+if (count _this > 6) then {_skill = _this select 6};
 
 //DEBUG
 if (_debug) then {
@@ -157,7 +173,7 @@ if (_handle) exitWith {
 //Also, women can't be assassins, ARMA is sexist that way. No assassinesses (assassinas? assassinetten?) for us,
 //Some AI features are disabled for the civ to save processing power
 if (!(_check) && (((round(random 100))> _chance)||(_unit isKindOf "Woman")||(_unit isKindOf "Woman_EP1"))) exitWith {
-	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} forEach ["AUTOTARGET","TARGET"];
+	_unit setSkill 0; _unit allowFleeing 1; {_unit disableAI _x} forEach ["AUTOTARGET","TARGET","FSM"];
 	_unit setVariable ["ws_assassin",true];
 	if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: exiting because random is under %1 or is woman",_chance];};
 };
@@ -173,10 +189,12 @@ if (_debug) then {player globalchat format ["ws_assassins.sqf DEBUG: ws_assassin
 
 //Set up sleeper
 _unit allowfleeing _flee;
-_unit setSkill _skill;
+{
+_skillvalue = (_skillset select _forEachIndex) + (random _skill) - (random _skill);
+_unit setSkill [_x,_skillvalue];
+} forEach ['aimingAccuracy','aimingShake','aimingSpeed','endurance','spotDistance','spotTime','courage','reloadSpeed','commanding','general'];
 //[_unit] joinSilent grpNull;
-_unit disableAI "AUTOTARGET";
-_unit disableAI "Target";
+//{_unit disableAI _x} forEach ["Target","AUTOTARGET","FSM"];
 
 //Weapon selection, Random if set to "ran"
 if (_weapon == "") then {
@@ -267,10 +285,14 @@ while {alive _unit} do {
 				};
 			doStop _unit;
 			[_unit] joinSilent grpNull;
+			_unit allowFleeing 0;
 			sleep _sleep;
 			[_unit] joinSilent _grp;
 			_unit setCombatMode "RED";
 			_unit setBehaviour "AWARE";
+			if (_unit knowsAbout _victim <2) then {_unit reveal [_victim,2.5]};
+			_unit lookAt _victim;
+			sleep 1;
 			{_unit addMagazine _weaponmag;} forEach [1,2,3,4];
 			_unit addWeapon _weapon;
 			_unit selectWeapon _weapon;
@@ -281,14 +303,10 @@ while {alive _unit} do {
 					_victim = (_listclosealive select (floor(random(count _listclosealive))));
 				};
 
-			sleep 0.001;
-			_unit enableAI "Target";
-			_unit doTarget _victim;
-			sleep 0.001;
-			_unit doFire _victim;
+			while {alive _victim && alive _unit} do {
+				doStop _unit; _unit doTarget _victim; _unit doFire _victim; sleep 0.5;
+			};
 
-			sleep 5;
-			if (alive _unit) then {_unit enableAI "autotarget";};
 			_done = true;
 
 			//DEBUG
