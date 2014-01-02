@@ -7,7 +7,7 @@ Populate buildings in radius around module with number of civilians and cars
 
 USAGE
 Min
-[object,radius] execVM "ws_populateTownA3.sqf";
+[object,radius] execVM "ws_populateTown.sqf";
 Full
 [object,radius,civ inside,civ outside,cars] execVM "ws_populateTownA3.sqf";
 
@@ -35,8 +35,23 @@ Add armed guards?
 */
 if !(isServer) exitWith {};
 
-_civclasses = ["C_man_1_2_F","C_man_1_3_F","C_man_polo_2_F","C_man_polo_2_F_afro","C_man_polo_2_F_euro","C_man_polo_4_F","C_man_polo_5_F","C_man_polo_6_F","C_man_w_worker_F","C_man_p_shorts_1_F","C_man_shorts_1_F","C_man_shorts_4_F"];
-_carclasses = ["C_Offroad_01_F","C_Quadbike_01_F","C_Hatchback_01_F","C_Hatchback_01_sport_F","C_Van_01_transport_F","C_Van_01_fuel_F","C_Van_01_box_F","C_Hatchback_01_F","C_Hatchback_01_F","C_Offroad_01_F","C_Offroad_01_F"];
+_civkillcounter = false;
+
+_civclasses = [];
+_carclasses = [];
+_validbuildings = [];
+if (isNil "ws_game_a3") then {call ws_fnc_gameCheck;};
+if (ws_game_a3) then {
+	//A3 classes
+	_civclasses = ["C_man_1_2_F","C_man_1_3_F","C_man_polo_2_F","C_man_polo_2_F_afro","C_man_polo_2_F_euro","C_man_polo_4_F","C_man_polo_5_F","C_man_polo_6_F","C_man_w_worker_F","C_man_p_shorts_1_F","C_man_shorts_1_F","C_man_shorts_4_F"];
+	_carclasses = ["C_Offroad_01_F","C_Quadbike_01_F","C_Hatchback_01_F","C_Hatchback_01_sport_F","C_Van_01_transport_F","C_Van_01_fuel_F","C_Van_01_box_F","C_Hatchback_01_F","C_Hatchback_01_F","C_Offroad_01_F","C_Offroad_01_F"];
+	_validbuildings = ["Fortress", "House","House_Small","Ruins","BagBunker_base_F","Stall_base_F","Shelter_base_F"];
+} else {
+	//A2 classes
+	_civclasses = ["TK_CIV_Takistani_Base_EP1","TK_CIV_Takistani01_EP1","TK_CIV_Takistani02_EP1","TK_CIV_Takistani03_EP1","TK_CIV_Takistani04_EP1","TK_CIV_Takistani05_EP1","TK_CIV_Takistani06_EP1","TK_CIV_Worker01_EP1","TK_CIV_Worker02_EP1","Woman_EP1","TK_CIV_Woman02_EP2","TK_CIV_Woman03_EP1"];
+	_carclasses = ["UAZ_Unarmed_TK_CIV_EP1"];
+	_validbuildings = ["Fortress", "House","House_Small","Ruins","Church"];
+};
 _guards = [];
 
 _center = _this select 0;
@@ -50,7 +65,7 @@ _civilians = _center getVariable ["ws_civilians",[]];
 //Fill buildings array
 {
 _buildings = _buildings + nearestObjects [(getPos _center),[_x],_radius];
-} forEach ["Fortress", "House","House_Small","RUINS","BagBunker_base_F","Stall_base_F","Shelter_base_F"];
+} forEach _validbuildings;
 
 {
     if ((str(_x buildingpos 3) == "[0,0,0]")) then {_buildings = _buildings - [_x]};
@@ -98,21 +113,24 @@ for "_x" from 1 to _cars do {
 	_veh setFuel (0.4 + random 0.4);
 	_veh setDir (Random 360);
 	_veh setVectorUp(surfaceNormal(getPos _veh));
-	if (random 1 > 0.6) then {_veh lock 2};
+
+	if (random 1 > 0.6) then {
+		if (ws_game_a3) then {_veh lock 2;} else {_veh lock true;};
+	};
 };
 
 _grp = createGroup civilian;
 {
-_civ = _grp createUnit [(_civclasses call ws_fnc_selectRandom),_x,[],0,"NONE"];
-_civ setBehaviour "AWARE";
-_civ setSpeedMode "NORMAL";
-_center setVariable ["ws_civilians",_civilians +[_civ]];
-_civilians = _center getVariable "ws_civilians";
-doStop _civ;
-_grp enableAttack false;
-_civ disableAI "Autotarget"; _civ disableAI "target";
-_civ setDir (random 360);
-if (getPosATL _civ select 2 != _x select 2) then {_civ setPos [_x select 0,_x select 1,1];_civ setposatl  _x};
+	_civ = _grp createUnit [(_civclasses call ws_fnc_selectRandom),_x,[],0,"NONE"];
+	_civ setBehaviour "AWARE";
+	_civ setSpeedMode "NORMAL";
+	_center setVariable ["ws_civilians",_civilians +[_civ]];
+	_civilians = _center getVariable "ws_civilians";
+	doStop _civ;
+	_grp enableAttack false;
+	_civ disableAI "Autotarget"; _civ disableAI "target";
+	_civ setDir (random 360);
+	if (getPosATL _civ select 2 != _x select 2) then {_civ setPos [_x select 0,_x select 1,1];_civ setposatl  _x};
 } forEach _posarray;
 
 
