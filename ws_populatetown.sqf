@@ -33,6 +33,7 @@ Improve car placement
 Reliably unstick civs from floor
 Add armed guards?
 */
+
 if !(isServer) exitWith {};
 
 _civkillcounter = false;
@@ -59,23 +60,17 @@ _radius = _this select 1;
 
 _buildings = [];
 _posarray = [];
-_bposarray = [];
+_bpa = [];
 _civilians = _center getVariable ["ws_civilians",[]];
 
-//Fill buildings array
-{
-_buildings = _buildings + nearestObjects [(getPos _center),[_x],_radius];
-} forEach _validbuildings;
-
-{
-    if ((str(_x buildingpos 3) == "[0,0,0]")) then {_buildings = _buildings - [_x]};
-} foreach _buildings;
+//Fill buildings array & get building positions
+_buildings = [_center,_radius,true,true] call ws_fnc_collectBuildings;
 
 if (count _buildings == 0) exitWith {["ws_populatetown ERROR:",_buildings,"no buildings in radius!"] call ws_fnc_debugText;};
 
-_inside = (count _buildings);
-_outside = (count _buildings)/2;
-_cars = (_outside/2);
+_inside = (count _buildings)/2;
+_outside =  (count _buildings)/5;
+_cars = 0;
 if (count _this >2) then {_inside = _this select 2};
 if (count _this > 3) then {_outside = _this select 3};
 if (count _this > 4) then {_cars = _this select 4};
@@ -83,15 +78,15 @@ if (count _this > 4) then {_cars = _this select 4};
 //Add building positions to the posarray
 while {count _posarray <= _inside} do {
 	_building = _buildings call ws_fnc_selectRandom;
-	_bposarray = _building getVariable ["ws_bpos",[]];
-	if (count _bposarray == 0) then {_bposarray = [_building] call ws_fnc_getBpos;};
+	_bpa = _building getVariable ["ws_bpos",[]];
+	if (count _bpa == 0) then {_bpa = [_building] call ws_fnc_getBpos;};
 
-	_i = floor (random (count _bposarray));
-	_bpos = _bposarray select _i;
+	_i = floor (random (count _bpa));
+	_bpos = _bpa select _i;
 	_posarray = _posarray + [_bpos];
-	_bposarray set [_i,0];			//Workaround as in http://community.bistudio.com/wiki/Array#Subtraction
-	_bposarray = _bposarray - [0];
-	_building setVariable ["ws_bpos",_bposarray];
+	_bpa set [_i,0];			//Workaround as in http://community.bistudio.com/wiki/Array#Subtraction
+	_bpa = _bpa - [0];
+	_building setVariable ["ws_bpos",_bpa];
 };
 
 if (count _posarray < _inside) then {_inside = count _posarray};
@@ -100,7 +95,7 @@ if (count _posarray < _inside) then {_inside = count _posarray};
 while {((count _posarray)-_inside) <= _outside} do {
 	_pos =  [_center,_radius] call ws_fnc_getPos;
 	if !(_pos in _posarray) then {
-	_posarray = _posarray + [_pos];
+		_posarray = _posarray + [_pos];
 	};
 };
 
@@ -119,19 +114,23 @@ for "_x" from 1 to _cars do {
 	};
 };
 
+//NOTE:
+//The grp creation can be moved inside the forEach loop and the doStop at the end removed to get civilians moving. Not recommend if you have a lot of civs.
+
 _grp = createGroup civilian;
 {
 	_civ = _grp createUnit [(_civclasses call ws_fnc_selectRandom),_x,[],0,"NONE"];
-	_civ setBehaviour "AWARE";
-	_civ setSpeedMode "NORMAL";
+	_civ setBehaviour "CARELESS";
+	_civ setSpeedMode "LIMITED";
 	_center setVariable ["ws_civilians",_civilians +[_civ]];
-	_civilians = _center getVariable "ws_civilians";
-	doStop _civ;
+	_civilians = _center getVariable ["ws_civilians",[]];
 	_grp enableAttack false;
 	_civ disableAI "Autotarget"; _civ disableAI "target";
 	_civ setDir (random 360);
-	if (getPosATL _civ select 2 != _x select 2) then {_civ setPos [_x select 0,_x select 1,1];_civ setposatl  _x};
+	if (getPosATL _civ select 2 != _x select 2) then {_civ setPos [_x select 0,_x select 1,1];};
+	doStop _civ;
 } forEach _posarray;
 
 
+_civilians = _center getVariable ["ws_civilians",[]];
 _civilians
