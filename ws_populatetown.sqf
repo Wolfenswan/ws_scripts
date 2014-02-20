@@ -70,7 +70,7 @@ if (count _buildings == 0) exitWith {["ws_populatetown ERROR:",_buildings,"no bu
 
 _inside = (count _buildings)/2;
 _outside =  (count _buildings)/5;
-_cars = 0;
+_cars = _inside/2;
 if (count _this >2) then {_inside = _this select 2};
 if (count _this > 3) then {_outside = _this select 3};
 if (count _this > 4) then {_cars = _this select 4};
@@ -119,7 +119,7 @@ for "_x" from 1 to _cars do {
 
 _grp = createGroup civilian;
 {
-	_civ = _grp createUnit [(_civclasses call ws_fnc_selectRandom),_x,[],0,"NONE"];
+		_civ = _grp createUnit [(_civclasses call ws_fnc_selectRandom),_x,[],0,"NONE"];
 	_civ setBehaviour "CARELESS";
 	_civ setSpeedMode "LIMITED";
 	_center setVariable ["ws_civilians",_civilians +[_civ]];
