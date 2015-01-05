@@ -1,4 +1,4 @@
-//using the artillery module to have AI artillery firing at a marker location
+// using the ARMA 2 artillery module to have AI artillery firing at a marker location
 
 if !(isServer) exitWith {};
 private ["_hetemplate","_minsleep","_arty","_targetpos","_ransleep"];

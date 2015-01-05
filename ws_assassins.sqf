@@ -1,7 +1,6 @@
 /* Civilian assassins and sleeper agents
 By Wolfenswan [FA]: wolfenswanarps@gmail.com | folkarps.com
 Video showcase: https://www.youtube.com/watch?v=wLw7mqZDpgk
-Laste Update: 04.10.2013
 
 
 FEATURE
@@ -305,7 +304,7 @@ while {alive _unit} do {
 				};
 
 			while {alive _victim && alive _unit} do {
-				doStop _unit; _unit doTarget _victim; _unit doFire _victim; sleep 0.5;
+				doStop _unit; _unit doTarget _victim; _unit fireAtTarget [_victim]; sleep 0.5;
 			};
 
 			_done = true;
