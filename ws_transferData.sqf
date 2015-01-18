@@ -60,7 +60,7 @@ ws_transferData_objAction =
 
 				ws_transferDone = true; publicVariable "ws_transferDone";
 				hintsilent "Transfer finished!";
-				cutText [format ["Transfer finished, data has been transfered."],"PLAIN",1];
+				cutText [format ["Transfer finished, data can now be collected."],"PLAIN",1];
 
 				ws_transferLaptop addAction ["Collect Data",ws_transferData_collectDataAction,"",5,true,true,"_target distance _this <= 3 && cursorTarget _this == _target"];
 			};
