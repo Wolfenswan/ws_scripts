@@ -23,9 +23,9 @@ Add a convenient way to restrict it to a side for adversarials.
 _obj = (_this select 0);
 _obj setVariable ["ws_transferData_runtime",(_this select 1)];
 
-["ws_transferData_transferDone",false,true] call ws_fnc_setGVar;
-["ws_transferData_transferStarting",false,true] call ws_fnc_setGVar;
-["ws_transferData_transferCollected",false,true] call ws_fnc_setGVar;
+["ws_transferData_transferDone",false] call ws_fnc_setGVar;
+["ws_transferData_transferStarting",false] call ws_fnc_setGVar;
+["ws_transferData_transferCollected",false] call ws_fnc_setGVar;
 
 ws_transferData_objAction =
 {[
