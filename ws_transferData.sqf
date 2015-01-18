@@ -1,6 +1,10 @@
 /*
 ws_transferData
 
+REQUIRES
+ws_fnc
+
+FEATURE
 Simulates transfer of data from any object, which can then be collected by a unit.
 When using the action on  the object the script will create a laptop and display a countdown to all players. Once the countdown finishes the data can be collected from the Laptop.
 On collection a message will display who picked up the data and a marker will follow the unit. Should the unit die the data needs to be re-collected from it's corpse.
@@ -62,8 +66,8 @@ ws_transferData_objAction =
 
 				["ws_transferData_transferDone",true,true,true] call ws_fnc_setGVar;
 
-				hintsilent "Transfer finished!";
-				cutText [format ["Transfer finished, data can now be collected."],"PLAIN",1];
+				hintsilent "";
+				cutText [format ["Transfer finished, the data can now be collected."],"PLAIN",1];
 
 				ws_transferLaptop addAction ["Collect Data",ws_transferData_collectDataAction,"",5,true,true,"_target distance _this <= 3 && cursorTarget _this == _target"];
 			};
