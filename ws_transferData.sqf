@@ -13,17 +13,19 @@ To test if a unit has the Data use
 (unitName getVariable ["ws_transferData_dataCarrier",false])
 it will return true if the unit is in posession of the data.
 
+If you only want to check if the Data has been collected at all, check ws_transferData_transferDone
+
 TODO
 Add a convenient way to restrict it to a side for adversarials.
 */
 
 // Configuration
 _obj = (_this select 0);
+_obj setVariable ["ws_transferData_runtime",(_this select 1)];
 
-["ws_transferData_runtime",(_this select 1)] call ws_fnc_setGVar;
-["ws_transferDone",false] call ws_fnc_setGVar;
-["ws_transferStarting",false] call ws_fnc_setGVar;
-["ws_transferCollected",false] call ws_fnc_setGVar;
+["ws_transferData_transferDone",false,true] call ws_fnc_setGVar;
+["ws_transferData_transferStarting",false,true] call ws_fnc_setGVar;
+["ws_transferData_transferCollected",false,true] call ws_fnc_setGVar;
 
 ws_transferData_objAction =
 {[
@@ -42,7 +44,7 @@ ws_transferData_objAction =
 				(_this select 0) removeAction (_this select 2);
 
 				_tick = 0;
-				while {_tick != ws_transferData_runtime} do {
+				while {_tick != (_this select 0) getVariable ["ws_transferData_runtime",120];} do {
 							_dots = "";
 							for "_i" from 0 to 5 do {
 								hintsilent format ["Transfering%1",_dots];
@@ -58,7 +60,8 @@ ws_transferData_objAction =
 						_tick = _tick + 10;
 				};
 
-				ws_transferDone = true; publicVariable "ws_transferDone";
+				["ws_transferData_transferDone",true,true,true] call ws_fnc_setGVar;
+
 				hintsilent "Transfer finished!";
 				cutText [format ["Transfer finished, data can now be collected."],"PLAIN",1];
 
@@ -73,7 +76,7 @@ ws_transferData_collectDataAction =
 		if (isServer) then {
 			(_this select 1) spawn ws_transferData_dataCarrier;
 			//(_this select 1) addItem "B_UavTerminal";
-			ws_transferCollected = true; publicVariable "ws_transferCollected";
+			["ws_transferData_transferCollected",true,true,true] call ws_fnc_setGVar;
 		};
 
 		if !(isDedicated) then {
@@ -93,7 +96,7 @@ ws_transferData_dataCarrier = {
 	};
 	_carrier setVariable ["ws_transferData_dataCarrier",false,true];
 	cutText [format ["%1 has died!",name _carrier],"PLAIN",1];
-	ws_transferCollected = false; publicVariable "ws_transferCollected";
+	["ws_transferData_transferCollected",false,true,true] call ws_fnc_setGVar;
 	_carrier addAction ["Collect Data",ws_transferData_collectDataAction,"",5,true,true,"_target distance _this <= 3 && cursorTarget _this == _target"];
 };
 
