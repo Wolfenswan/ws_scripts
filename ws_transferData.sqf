@@ -69,7 +69,7 @@ ws_transferData_objAction =
 				hintsilent "";
 				cutText [format ["Transfer finished, the data can now be collected."],"PLAIN",1];
 
-				ws_transferLaptop addAction ["Collect Data",ws_transferData_collectDataAction,"",5,true,true,"_target distance _this <= 3 && cursorTarget _this == _target"];
+				ws_transferLaptop addAction ["Collect Data",ws_transferData_collectDataAction,"",5,true,true,""];
 			};
 		}],"BIS_fnc_spawn",true] spawn BIS_fnc_MP;};
 
@@ -101,7 +101,9 @@ ws_transferData_dataCarrier = {
 	_carrier setVariable ["ws_transferData_dataCarrier",false,true];
 	cutText [format ["%1 has died!",name _carrier],"PLAIN",1];
 	["ws_transferData_transferCollected",false,true,true] call ws_fnc_setGVar;
-	_carrier addAction ["Collect Data",ws_transferData_collectDataAction,"",5,true,true,"_target distance _this <= 3 && cursorTarget _this == _target"];
+
+	[[[_carrier],{(_this select 0) addAction ["Collect Data",ws_transferData_collectDataAction,"",5,true,true,""]}],"BIS_fnc_spawn",true] spawn BIS_fnc_MP;
+
 };
 
-_obj addAction ["Begin Transfer",ws_transferData_objAction,"",5,true,true,"_target distance _this <= 5"];
+_obj addAction ["Begin Transfer",ws_transferData_objAction,"",5,true,true,"_target distance _this <= 2"];
