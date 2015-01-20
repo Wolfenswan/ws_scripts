@@ -38,10 +38,14 @@ ws_transferData_objAction =
 				["ws_transferData_transferStarting",true,true,true] call ws_fnc_setGVar;
 				ws_transferLaptop = "Land_Laptop_unfolded_F" createVehicle (getPosATL (_this select 1));
 
+				ws_transferLaptop setDir (getDir (_this select 1) -180);
+
 				ws_transferData_carrierMarker = createMarker ["ws_transferData_carrierMarker",getPosATL (_this select 1)];
 				ws_transferData_carrierMarker setMarkerType "mil_dot";
 				ws_transferData_carrierMarker setMarkerColor "ColorOrange";
 				ws_transferData_carrierMarker setMarkerText "DATA";
+
+				publicVariable "ws_transferLaptop";
 			};
 
 			if !(isDedicated) then {
