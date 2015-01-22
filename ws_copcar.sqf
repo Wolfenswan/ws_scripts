@@ -1,7 +1,7 @@
 /*
 Turns a civilian offroad into a black police offroad with working beacons
 
-_this execVM "ws_copcar.sqf" from unit init. No locality restrictions, needs to run for each client.
+This execVM "ws_copcar.sqf" from unit init. No locality restrictions, needs to run for each client.
 */
 
 _this addAction ["Beacons On",{(_this select 0) animate ["BeaconsStart",1]},[],50,false,true,"","_target animationPhase 'BeaconsStart' < 0.5 AND Alive(_target) AND driver _target == _this"];
