@@ -16,6 +16,7 @@ To retrieve groups with specific identifier:
 
 if !(isServer) exitWith {};
 
+
 private ["_variable","_store"];
 
 _variable = [_this,0,"any"] call BIS_fnc_param;
@@ -37,7 +38,7 @@ if (isNil "ws_cacheStoreRestoreGrps") then {
 	if (_x getVariable ["ws_cacheStoreRestore",""] == _variable) then {
 		if (_store) then {
 			_x setvariable ["f_cached", true];
-             _x spawn f_fnc_gCache;
+             [_x,3] spawn f_fnc_gCache;
 		} else {
 			 _x setvariable ["f_cached", false];
              _x spawn f_fnc_gUncache;
