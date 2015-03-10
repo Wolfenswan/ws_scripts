@@ -1,5 +1,3 @@
-enableSentences false;
-
 // Radius in which to detect mines
 _radius = 80;
 
@@ -7,8 +5,7 @@ _radius = 80;
 sleep 0.1;
 
 // begin main loop
-run = true;
-while {alive player && run} do {
+while {alive player} do {
 
 	// Only proceed if the player does have a mine detector
 	waitUntil {sleep 0.1;"MineDetector" in (items player)};
