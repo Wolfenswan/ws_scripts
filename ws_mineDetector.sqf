@@ -1,3 +1,5 @@
+// Simple mine detector script. Mine detector will behave similarly to a geiger counter and play a crescending beep the closer to a mine the unit is.
+
 // Radius in which to detect mines
 _radius = 80;
 
@@ -26,9 +28,13 @@ while {alive player} do {
 
 	if (count _nearmines == 1) then {
 		_nearestmine = _nearmines select 0;
-		uisleep ((player distance _nearestmine)/25);
-		playSound3D ["A3\missions_f\data\sounds\click.wss", player, false, eyePos player, 4, 5, 0.1];
-		//playSound3D ["a3\missions_f_beta\data\sounds\firing_drills\drill_start.wss", player, false, eyePos player, 3, 1.2, 1];
+		uisleep (((_unit distance _nearestmine)/25) max 0.1); //sleep in shorter intervals but at least 0.1 seconds
+
+		// "Tock"
+		//playSound3D ["A3\missions_f\data\sounds\click.wss", _unit, false, eyePos _unit, 4, 5, 3];
+
+		// "Ping"
+		playSound3D ["a3\missions_f_beta\data\sounds\firing_drills\drill_start.wss", _unit, false, eyePos _unit, 3, 2, 3];
 	};
 
 	sleep 0.1;
